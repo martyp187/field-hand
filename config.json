@@ -1,0 +1,35 @@
+{
+  "ftp": {
+    "savegamePath": "/gameserver/saves/savegame1",
+    "files": {
+      "farms":            "farms.xml",
+      "fields":           "fields.xml",
+      "environment":      "environment.xml",
+      "players":          "players.xml",
+      "invoices":         "invoices.xml",
+      "sales":            "sales.xml",
+      "precisionFarming": "precisionFarming.xml",
+      "careerSavegame":   "careerSavegame.xml",
+      "vehicles":         "vehicles.xml",
+      "economy":          "economy.xml",
+      "farmland":         "farmland.xml",
+      "items":            "items.xml"
+    },
+    "fallbackPollIntervalSeconds": 180
+  },
+  "http": {
+    "endpoints": {
+      "stats":    "/feed/dedicated-server-stats.xml",
+      "vehicles": "/feed/dedicated-server-vehicles.xml",
+      "economy":  "/feed/dedicated-server-economy.xml",
+      "savegame": "/feed/dedicated-server-savegame.xml"
+    },
+    "fallbackPollIntervalSeconds": 60
+  },
+  "dataRetention": {
+    "rawRetentionDays": 7,
+    "hourlyRetentionDays": 90
+  },
+  "ignoredFarmIds": [2],
+  "mapImageUrl": null
+}

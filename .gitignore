@@ -1,0 +1,27 @@
+# Environment & secrets
+.env
+
+# Compiled output
+dist/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Test coverage
+coverage/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

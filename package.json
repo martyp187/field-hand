@@ -1,0 +1,53 @@
+{
+  "name": "field-hand",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "test": "jest",
+    "lint": "eslint src --ext .ts",
+    "format": "prettier --write src",
+    "tools:ftpCheck": "ts-node src/tools/ftpCheck.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/martyp187/field-hand.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/martyp187/field-hand/issues"
+  },
+  "homepage": "https://github.com/martyp187/field-hand#readme",
+  "dependencies": {
+    "basic-ftp": "^5.3.0",
+    "better-sqlite3": "^12.9.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.6.0",
+    "@types/xml2js": "^0.4.14",
+    "@typescript-eslint/eslint-plugin": "^8.59.0",
+    "@typescript-eslint/parser": "^8.59.0",
+    "eslint": "^10.2.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "jest": "^30.3.0",
+    "prettier": "^3.8.3",
+    "ts-jest": "^29.4.9",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
+  }
+}
