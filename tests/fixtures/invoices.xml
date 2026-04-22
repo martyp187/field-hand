@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<invoices version="2" nextId="2">
+    <invoice id="1" senderFarmId="3" recipientFarmId="1" state="1">
+        <createdAt day="1" hour="15" minute="15" period="8" year="1"/>
+        <lineItems>
+            <item workTypeId="17" amount="4666.078125" quantity="2.232573" unitType="3" fieldId="85" fieldArea="2.232573" note=""/>
+        </lineItems>
+    </invoice>
+</invoices>

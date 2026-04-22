@@ -19,10 +19,10 @@
   },
   "http": {
     "endpoints": {
-      "stats":    "/feed/dedicated-server-stats.html",
-      "vehicles": "/feed/dedicated-server-vehicles.html",
-      "economy":  "/feed/dedicated-server-economy.html",
-      "savegame": "/feed/dedicated-server-savegame.html"
+      "stats":          "/feed/dedicated-server-stats.xml",
+      "careerSavegame": "/feed/dedicated-server-savegame.html?file=careerSavegame",
+      "vehicles":       "/feed/dedicated-server-savegame.html?file=vehicles",
+      "economy":        "/feed/dedicated-server-savegame.html?file=economy"
     },
     "fallbackPollIntervalSeconds": 60
   },

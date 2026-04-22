@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<sales>
+    <item timeLeft="25" isGenerated="true" xmlFilename="data/vehicles/agrifac/lightOptitraxx/lightOptitraxx.xml" age="31" price="213760" damage="0.512154" wear="0.936632" operatingTime="75603.664062"/>
+    <item timeLeft="25" isGenerated="true" xmlFilename="data/vehicles/mcCormick/x8VTDrive/x8VTDrive.xml" age="23" price="118526" damage="0.287980" wear="0.899678" operatingTime="91264.968750">
+        <boughtConfiguration name="motor" id="2"/>
+    </item>
+    <item timeLeft="12" isGenerated="true" xmlFilename="data/vehicles/fendt/vario500/vario500.xml" age="21" price="78254" damage="0.393220" wear="0.421224" operatingTime="89946.351562">
+        <boughtConfiguration name="design2" id="2"/>
+        <boughtConfiguration name="rimColor" id="2"/>
+    </item>
+    <item timeLeft="19" isGenerated="true" xmlFilename="data/vehicles/schaeffer/loader23E/loader23E.xml" age="14" price="28752" damage="0.382764" wear="0.959405" operatingTime="45827.316406"/>
+</sales>

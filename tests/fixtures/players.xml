@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<players>
+    <player uniqueUserId="5FLw1yGR0Qo5v3Smq+o9cuA8ZoBEZqL4rFqlEvHL6ns=" timeLastConnected="2026/04/22 17:07">
+        <style filename="dataS/character/playerM/playerM.xml">
+            <facegear color="1"/>
+            <onepiece color="1" name="empty"/>
+            <bottom color="1" name="jeans"/>
+            <face color="1" name="head01"/>
+            <top color="1" name="collaredShirt"/>
+            <gloves color="1" name="empty"/>
+            <headgear color="1" name="empty"/>
+            <glasses color="1" name="empty"/>
+            <footwear color="1" name="workBoots2"/>
+            <hairStyle color="6" name="hair02"/>
+            <beard color="6" name="empty"/>
+        </style>
+    </player>
+    <player uniqueUserId="cTxCs2LNUbSWtD7c9fE2/joNxJ0e6Lr9/T4kcG+LU18=" timeLastConnected="2026/04/22 13:13">
+        <style filename="dataS/character/playerM/playerM.xml">
+            <facegear color="1"/>
+            <onepiece color="1" name="empty"/>
+            <bottom color="1" name="jeans"/>
+            <face color="1" name="head01"/>
+            <top color="1" name="collaredShirt"/>
+            <gloves color="1" name="empty"/>
+            <headgear color="1" name="empty"/>
+            <glasses color="1" name="empty"/>
+            <footwear color="1" name="workBoots2"/>
+            <hairStyle color="6" name="hair02"/>
+            <beard color="6" name="empty"/>
+        </style>
+    </player>
+</players>

@@ -17,6 +17,8 @@ const db: DatabaseType = new Database(resolvedPath);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 
-console.log(`[db] SQLite connected: ${resolvedPath}`);
+if (process.env.NODE_ENV !== 'test') {
+  console.log(`[db] SQLite connected: ${resolvedPath}`);
+}
 
 export default db;
