@@ -11,6 +11,7 @@ import { parseStats } from './parser/statsParser';
 import { PollerService } from './poller/pollerService';
 import { scheduleNightlyArchival } from './poller/archivalJob';
 import { updatePollerHealth } from './poller/pollerHealth';
+import { createApiRouter } from './api/router';
 
 const CONFIG_PATH = path.resolve(__dirname, '..', 'config.json');
 const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
@@ -117,6 +118,8 @@ async function bootstrap(): Promise<void> {
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', uptime: process.uptime() });
   });
+
+  app.use('/api', createApiRouter(db));
 
   // Nightly archival
   scheduleNightlyArchival(db);

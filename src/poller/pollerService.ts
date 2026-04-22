@@ -22,6 +22,7 @@ import { writeSales } from '../db/writers/salesWriter';
 import { writePrecisionFarming } from '../db/writers/precisionFarmingWriter';
 import { parsePrecisionFarming } from '../parser/precisionFarmingParser';
 import { updatePollerHealth, checkStaleAndAlert } from './pollerHealth';
+import { broadcast } from '../api/sseManager';
 import {
   validateServerStats,
   validateFarms,
@@ -184,6 +185,13 @@ export class PollerService {
     writeEconomy(economy, this.db);
 
     updatePollerHealth('http', true, undefined, this.db);
+    broadcast('server-update', {
+      serverName: stats.serverName,
+      playerCount: stats.slots.numUsed,
+      slotsCapacity: stats.slots.capacity,
+      dayTimeMs: stats.dayTimeMs,
+      gameVersion: stats.gameVersion,
+    });
     console.log(`[poller/http] OK — ${stats.slots.numUsed}/${stats.slots.capacity} players online`);
   }
 
@@ -236,6 +244,7 @@ export class PollerService {
     }
 
     updatePollerHealth('ftp', true, undefined, this.db);
+    broadcast('farm-update', { processedFiles: processed, totalFiles: results.length });
     console.log(`[poller/ftp] OK — ${processed}/${results.length} files processed`);
   }
 }

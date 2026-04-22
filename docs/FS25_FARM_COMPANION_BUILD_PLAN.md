@@ -684,32 +684,32 @@ All prefixed with `/api/`
 ### Phase 5 — REST API
 > Goal: All data accessible via typed API. Tested with Postman before frontend begins.
 
-- ⬜ 5.1 — Set up Express router structure
-- ⬜ 5.2 — Implement settings resolution layer (DB > config.json > .env > hardcoded)
-- ⬜ 5.3 — `GET /api/server/status`
-- ⬜ 5.4 — `GET /api/server/weather`
-- ⬜ 5.5 — `GET /api/farms`
-- ⬜ 5.6 — `GET /api/farms/:id`
-- ⬜ 5.7 — `GET /api/farms/:id/finances`
-- ⬜ 5.8 — `GET /api/farms/:id/statistics`
-- ⬜ 5.9 — `GET /api/farms/:id/fields`
-- ⬜ 5.10 — `GET /api/farms/:id/vehicles`
-- ⬜ 5.11 — `GET /api/players`
-- ⬜ 5.12 — `GET /api/players/:nickname/tasks`
-- ⬜ 5.13 — `GET /api/fields`
-- ⬜ 5.14 — `GET /api/farmlands`
-- ⬜ 5.15 — `GET /api/economy/prices`
-- ⬜ 5.16 — `GET /api/market/vehicles`
-- ⬜ 5.17 — `GET /api/tasks` (filterable by farmId, status, category)
-- ⬜ 5.18 — `POST /api/tasks`
-- ⬜ 5.19 — `PATCH /api/tasks/:id/claim`
-- ⬜ 5.20 — `PATCH /api/tasks/:id/status`
-- ⬜ 5.21 — `GET /api/goals`
-- ⬜ 5.22 — `GET /api/poller/health`
-- ⬜ 5.23 — Set up SSE endpoint (`GET /api/events`) using Express response streaming
-- ⬜ 5.24 — Implement SSE client registry (track connected clients, handle disconnects cleanly, send named events: `server-update`, `farm-update`, `task-update`, `poller-health`)
-- ⬜ 5.25 — Trigger SSE broadcast after each successful poll cycle write
-- ⬜ 5.26 — Test all REST endpoints (Postman or equivalent), test SSE stream using browser EventSource or curl
+- ✅ 5.1 — Express router structure (`src/api/router.ts`, `src/api/routes/*.ts`; each route group is a factory function accepting `db`)
+- ✅ 5.2 — Settings resolution layer (`src/api/settings.ts`: DB → config.json → process.env → hardcoded fallback)
+- ✅ 5.3 — `GET /api/server/status` — latest server snapshot + all poller health rows
+- ✅ 5.4 — `GET /api/server/weather` — latest environment snapshot with parsed `weatherForecast`
+- ✅ 5.5 — `GET /api/farms` — all farms with `player_count`; Farm 2 absent
+- ✅ 5.6 — `GET /api/farms/:id` — farm detail with `players` array; 404 if not found
+- ✅ 5.7 — `GET /api/farms/:id/finances` — all finance day rows ordered by day DESC
+- ✅ 5.8 — `GET /api/farms/:id/statistics` — last 20 statistics snapshots
+- ✅ 5.9 — `GET /api/farms/:id/fields` — farmlands owned by the farm (with precision stats joined)
+- ✅ 5.10 — `GET /api/farms/:id/vehicles` — vehicles for farm with `fills` and `attachedVehicleIds` parsed from JSON
+- ✅ 5.11 — `GET /api/players` — all players with farm membership
+- ✅ 5.12 — `GET /api/players/:nickname/tasks` — tasks claimed by a player
+- ✅ 5.13 — `GET /api/fields` — all field crop-state records
+- ✅ 5.14 — `GET /api/farmlands` — all farmlands with owner farm name and precision stats
+- ✅ 5.15 — `GET /api/economy/prices` — prices grouped by fill type
+- ✅ 5.16 — `GET /api/market/vehicles` — used vehicle sales market
+- ✅ 5.17 — `GET /api/tasks` — filterable by `farmId`, `status`, `category`; ordered by priority
+- ✅ 5.18 — `POST /api/tasks` — creates task; validates title; broadcasts `task-update`
+- ✅ 5.19 — `PATCH /api/tasks/:id/claim` — claims task; 409 if already claimed; transitions to IN_PROGRESS
+- ✅ 5.20 — `PATCH /api/tasks/:id/status` — updates status; sets `completed_at` on DONE; broadcasts `task-update`
+- ✅ 5.21 — `GET /api/goals` — all server goals
+- ✅ 5.22 — `GET /api/poller/health` — poller health + unresolved data quality alerts
+- ✅ 5.23 — SSE endpoint `GET /api/events` — sets event-stream headers, registers client, sends `connected` event
+- ✅ 5.24 — SSE client registry (`src/api/sseManager.ts`) — add/remove clients, broadcast named events; handles dead connections gracefully
+- ✅ 5.25 — SSE broadcast after each poll: `server-update` after HTTP poll, `farm-update` after FTP poll, `task-update` on task mutation
+- ✅ 5.26 — 23 integration tests covering all REST endpoints (`tests/integration/api.test.ts`); SSE stream testable via `curl -N http://localhost:3000/api/events`
 
 ---
 
@@ -804,7 +804,7 @@ All prefixed with `/api/`
 
 ## 13. Current Status
 
-**Phase:** 4 complete — beginning Phase 5 (REST API)  
+**Phase:** 5 complete — beginning Phase 6 (Task Board Backend)  
 **Last updated:** 2026-04-22  
 **Game version at time of analysis:** 1.18.0.0  
 **Save created:** 2026-04-21  
