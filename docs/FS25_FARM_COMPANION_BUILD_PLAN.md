@@ -581,53 +581,53 @@ All prefixed with `/api/`
 ### Phase 0 — Project Scaffolding
 > Goal: Repo structure, tooling, environment. Nothing runs yet.
 
-- ⬜ 0.1 — Initialise Node.js + Express project with TypeScript
-- ⬜ 0.2 — Set up ESLint, Prettier, `.env` config, `config.json`
-- ⬜ 0.3 — Set up MariaDB on VPS, create database and app user
-- ⬜ 0.4 — Confirm FTP access — test FTPS vs plain FTP, determine protocol
-- ⬜ 0.5 — Define folder structure: `/src/poller`, `/src/parser`, `/src/db`, `/src/api`, `/src/tools`, `/tests`
-- ⬜ 0.6 — Set up Git repository with `.gitignore` (exclude `.env`, `config.json` if sensitive)
-- ⬜ 0.7 — Set up Jest + ts-jest for testing
+- ✅ 0.1 — Initialise Node.js + Express project with TypeScript
+- ✅ 0.2 — Set up ESLint, Prettier, `.env` config, `config.json`
+- ✅ 0.3 — ~~Set up MariaDB on VPS, create database and app user~~ → replaced with SQLite (`better-sqlite3`); WAL mode enabled
+- ✅ 0.4 — Confirm FTP access — test FTPS vs plain FTP, determine protocol
+- ✅ 0.5 — Define folder structure: `/src/poller`, `/src/parser`, `/src/db`, `/src/api`, `/src/tools`, `/tests`
+- ✅ 0.6 — Set up Git repository with `.gitignore` (exclude `.env`, `config.json` if sensitive)
+- ✅ 0.7 — Set up Jest + ts-jest for testing
 
 ---
 
 ### Phase 1 — HTTP Poller & Data Validation Tools
 > Goal: Fetch, parse and inspect every HTTP endpoint. No database writes yet — CLI output only.
 
-- ⬜ 1.1 — Build HTTP fetcher for `dedicated-server-stats.xml`
-- ⬜ 1.2 — Build typed XML parser for stats.xml → TypeScript interfaces
-- ⬜ 1.3 — Build CLI inspection tool: pretty-print parsed stats.xml output
-- ⬜ 1.4 — Build HTTP fetcher + parser for `dedicated-server-vehicles.xml`
-- ⬜ 1.5 — Build HTTP fetcher + parser for `dedicated-server-economy.xml`
-- ⬜ 1.6 — Build HTTP fetcher + parser for `dedicated-server-savegame.xml`
-- ⬜ 1.7 — Build CLI tool to print all four HTTP sources in a readable summary
-- ⬜ 1.8 — Validate multi-value fill type parsing (zip DIESEL/DEF/AIR pairs)
-- ⬜ 1.9 — Validate dayTime ms → HH:MM conversion with timeScale awareness
-- ⬜ 1.10 — Read and log `autoSaveInterval` from savegame — confirm dynamic scheduling logic
-- ⬜ 1.11 — Write unit tests for all parsers using real XML fixture files
+- ✅ 1.1 — Build HTTP fetcher for `dedicated-server-stats.xml`
+- ✅ 1.2 — Build typed XML parser for stats.xml → TypeScript interfaces
+- ✅ 1.3 — Build CLI inspection tool: pretty-print parsed stats.xml output
+- ✅ 1.4 — Build HTTP fetcher + parser for vehicles (`dedicated-server-savegame.html?file=vehicles`)
+- ✅ 1.5 — Build HTTP fetcher + parser for economy (`dedicated-server-savegame.html?file=economy`)
+- ✅ 1.6 — Build HTTP fetcher + parser for careerSavegame (`dedicated-server-savegame.html?file=careerSavegame`)
+- ✅ 1.7 — Build CLI tool to print all four HTTP sources in a readable summary (`tools:httpCheck`)
+- ✅ 1.8 — Validate multi-value fill type parsing (zip DIESEL/DEF/AIR pairs)
+- ✅ 1.9 — Validate dayTime ms → HH:MM conversion with timeScale awareness
+- ✅ 1.10 — Read and log `autoSaveInterval` from savegame — confirm dynamic scheduling logic
+- ✅ 1.11 — Write unit tests for all parsers using real XML fixture files
 
 ---
 
 ### Phase 2 — FTP Poller & Data Validation Tools
 > Goal: Fetch, parse and inspect every FTP file. Still no database writes.
 
-- ⬜ 2.1 — Build FTP client using `basic-ftp`, FTPS preferred, `.env` driven
-- ⬜ 2.2 — Build diagnostic tool: connect to FTP, list savegame directory, confirm all expected files present
-- ⬜ 2.3 — Build file change detection (compare remote file modified timestamp before downloading)
-- ⬜ 2.4 — Fetch and parse `careerSavegame.xml` — extract autoSaveInterval, confirm poll scheduling
-- ⬜ 2.5 — Fetch and parse `farms.xml` → typed objects, CLI print tool
-- ⬜ 2.6 — Fetch and parse `fields.xml` → typed objects, CLI print tool
-- ⬜ 2.7 — Fetch and parse `environment.xml` → typed objects, CLI print tool
-- ⬜ 2.8 — Fetch and parse `players.xml` → typed objects, CLI print tool
-- ⬜ 2.9 — Fetch and parse `invoices.xml` → typed objects, CLI print tool
-- ⬜ 2.10 — Fetch and parse `sales.xml` → typed objects, CLI print tool
-- ⬜ 2.11 — Fetch and parse `precisionFarming.xml` → typed objects, CLI print tool
-- ⬜ 2.12 — Fetch and parse `vehicles.xml` (FTP) → typed objects, CLI print tool
-- ⬜ 2.13 — Validate `uniqueUserId` cross-reference between `farms.xml` and `players.xml`
-- ⬜ 2.14 — Validate farm colour index → hex colour mapping (define palette)
-- ⬜ 2.15 — Build FTP retry logic with exponential backoff and failure handling
-- ⬜ 2.16 — Confirm stale data fallback behaviour (FTP failure → last good data retained)
-- ⬜ 2.17 — Write unit tests for all FTP parsers using real XML fixture files
+- ✅ 2.1 — Build FTP client using `basic-ftp`, FTPS preferred, `.env` driven
+- ✅ 2.2 — Build diagnostic tool: connect to FTP, list savegame directory, confirm all expected files present (`tools:ftpCheck`)
+- ✅ 2.3 — Build file change detection (compare remote file modified timestamp before downloading)
+- ✅ 2.4 — Fetch and parse `careerSavegame.xml` — extract autoSaveInterval, confirm poll scheduling
+- ✅ 2.5 — Fetch and parse `farms.xml` → typed objects, CLI print tool
+- ✅ 2.6 — Fetch and parse `fields.xml` → typed objects, CLI print tool
+- ✅ 2.7 — Fetch and parse `environment.xml` → typed objects, CLI print tool
+- ✅ 2.8 — Fetch and parse `players.xml` → typed objects, CLI print tool
+- ✅ 2.9 — Fetch and parse `invoices.xml` → typed objects, CLI print tool
+- ✅ 2.10 — Fetch and parse `sales.xml` → typed objects, CLI print tool
+- ⬜ 2.11 — Fetch and parse `precisionFarming.xml` → typed objects, CLI print tool (fixture saved; parser deferred)
+- ✅ 2.12 — Fetch and parse `vehicles.xml` (FTP) → confirmed byte-identical to HTTP feed; HTTP used as primary source
+- ✅ 2.13 — Validate `uniqueUserId` cross-reference between `farms.xml` and `players.xml`
+- ✅ 2.14 — Validate farm colour index → hex colour mapping (`src/parser/farmColours.ts`, 16-colour palette)
+- ✅ 2.15 — Build FTP retry logic with exponential backoff and failure handling (built in Phase 4 `pollerService.ts`)
+- ✅ 2.16 — Confirm stale data fallback behaviour (FTP failure → last good data retained in DB, health log updated)
+- ✅ 2.17 — Write unit tests for all FTP parsers using real XML fixture files (`tests/unit/ftpParsers.test.ts`)
 - ⬜ 2.18 — **Test finances day structure**: advance in-game date, re-fetch farms.xml, confirm whether day entries accumulate or overwrite
 
 ---
@@ -635,49 +635,49 @@ All prefixed with `/api/`
 ### Phase 3 — Database Schema & Write Layer
 > Goal: All tables created. Parsed data writes correctly. Test harness validates full poll cycle.
 
-- ⬜ 3.1 — Create `server_snapshots` table
-- ⬜ 3.2 — Create `farms` table
-- ⬜ 3.3 — Create `farm_finance_snapshots` table
-- ⬜ 3.4 — Create `farm_statistics_snapshots` table
-- ⬜ 3.5 — Create `players` table
-- ⬜ 3.6 — Create `farm_players` junction table
-- ⬜ 3.7 — Create `farmlands` table + `farmland_price_history` table
-- ⬜ 3.8 — Create `fields` table
-- ⬜ 3.9 — Create `vehicles` table
-- ⬜ 3.10 — Create `environment_snapshots` table
-- ⬜ 3.11 — Create `economy_prices` table
-- ⬜ 3.12 — Create `invoices` table
-- ⬜ 3.13 — Create `sales_market` table
-- ⬜ 3.14 — Create `tasks`, `task_claims`, `server_goals`, `recurring_task_templates` tables
-- ⬜ 3.15 — Create `poller_health` table
-- ⬜ 3.16 — Create `data_quality_alerts` table
-- ⬜ 3.17 — Create `app_settings` table + seed with defaults
-- ⬜ 3.18 — Build write/upsert layer for all HTTP-sourced data
-- ⬜ 3.19 — Build write/upsert layer for all FTP-sourced data
-- ⬜ 3.20 — Build test harness: full poll cycle → write → query back → print results
-- ⬜ 3.21 — Validate diff detection: two polls with same data → no duplicate rows
-- ⬜ 3.22 — Validate Farm 2 filter: no Farm 2 rows in farms table after full cycle
-- ⬜ 3.23 — Validate data retention: insert old rows, run archival job, confirm pruning
-- ⬜ 3.24 — Write integration tests for write layer
+- ✅ 3.1 — Create `server_snapshots` table
+- ✅ 3.2 — Create `farms` table
+- ✅ 3.3 — Create `farm_finance_snapshots` table
+- ✅ 3.4 — Create `farm_statistics_snapshots` table
+- ✅ 3.5 — Create `players` table
+- ✅ 3.6 — Create `farm_players` junction table
+- ✅ 3.7 — Create `farmlands` table + `farmland_price_history` table
+- ✅ 3.8 — Create `fields` table
+- ✅ 3.9 — Create `vehicles` table
+- ✅ 3.10 — Create `environment_snapshots` table
+- ✅ 3.11 — Create `economy_prices` table
+- ✅ 3.12 — Create `invoices` table
+- ✅ 3.13 — Create `sales_market` table
+- ✅ 3.14 — Create `tasks`, `task_claims`, `server_goals`, `recurring_task_templates` tables
+- ✅ 3.15 — Create `poller_health` table
+- ✅ 3.16 — Create `data_quality_alerts` table
+- ✅ 3.17 — Create `app_settings` table + seed with defaults
+- ✅ 3.18 — Build write/upsert layer for all HTTP-sourced data (`serverWriter`, `vehiclesWriter`, `economyWriter`)
+- ✅ 3.19 — Build write/upsert layer for all FTP-sourced data (`farmsWriter`, `fieldsWriter`, `environmentWriter`, `invoicesWriter`, `salesWriter`)
+- ✅ 3.20 — Build test harness: full poll cycle → write → query back → print results (`tools:dbCheck`)
+- ✅ 3.21 — Validate diff detection: two polls with same data → no duplicate rows
+- ✅ 3.22 — Validate Farm 2 filter: no Farm 2 rows in farms table after full cycle
+- ✅ 3.23 — Validate data retention: insert old rows, run archival job, confirm pruning
+- ✅ 3.24 — Write integration tests for write layer (`tests/integration/writeLayer.test.ts`)
 
 ---
 
 ### Phase 4 — Poller Service & Scheduling
 > Goal: Production-grade background service polling all sources on dynamic schedules.
 
-- ⬜ 4.1 — Build unified poller service using `node-cron`
-- ⬜ 4.2 — Implement dynamic HTTP poll interval (configurable, default 60s)
-- ⬜ 4.3 — Implement dynamic FTP poll interval (reads autoSaveInterval from careerSavegame.xml, default 180s)
-- ⬜ 4.4 — Implement per-source lock flag (prevent concurrent polls of same source)
-- ⬜ 4.5 — Implement retry logic with exponential backoff for failed fetches
-- ⬜ 4.6 — Implement stale data alerting (flag if source hasn't updated within 2× expected interval)
-- ⬜ 4.7 — Build Data Quality Validator layer — run after each parse, write to data_quality_alerts
-- ⬜ 4.8 — Build poller health writer (update poller_health table after each poll attempt)
-- ⬜ 4.9 — Build nightly archival/retention job
-- ⬜ 4.10 — Build startup sequence (steps 1–12 from Section 7)
-- ⬜ 4.11 — CLI poller status tool: show last poll result per source
-- ⬜ 4.12 — Run poller continuously for 30 minutes, inspect data quality and health log
-- ⬜ 4.13 — Write integration tests for scheduling and lock behaviour
+- ✅ 4.1 — Build unified poller service (`pollerService.ts`; recursive setTimeout for dynamic intervals, node-cron for nightly archival)
+- ✅ 4.2 — Implement dynamic HTTP poll interval (configurable via `app_settings`, default 60s)
+- ✅ 4.3 — Implement dynamic FTP poll interval (reads autoSaveInterval from careerSavegame.xml at startup, default 180s)
+- ✅ 4.4 — Implement per-source lock flag (HTTP and FTP locks; skipped cycle logged to poller_health)
+- ✅ 4.5 — Implement retry logic with exponential backoff for failed fetches (3 attempts: 1s/2s/4s)
+- ✅ 4.6 — Implement stale data alerting (`checkStaleAndAlert` writes to data_quality_alerts when source silent > 2× interval)
+- ✅ 4.7 — Build Data Quality Validator layer (`validators.ts`: balance sanity, dayTime regression, field count drop, vehicle farm mismatch, game version change)
+- ✅ 4.8 — Build poller health writer (`pollerHealth.ts`: OK/DEGRADED/DOWN states, consecutive failure tracking)
+- ✅ 4.9 — Build nightly archival/retention job (`archivalJob.ts`, node-cron `0 3 * * *`)
+- ✅ 4.10 — Build startup sequence (steps 1–12 from Section 7 in `src/index.ts`)
+- ✅ 4.11 — CLI poller status tool (`tools:pollerStatus` — health table + unresolved alerts)
+- ✅ 4.12 — Run poller continuously for 30 minutes, inspect data quality and health log
+- ✅ 4.13 — Write integration tests for scheduling and lock behaviour (`tests/integration/poller.test.ts`)
 
 ---
 
@@ -804,10 +804,22 @@ All prefixed with `/api/`
 
 ## 13. Current Status
 
-**Phase:** 0 — Not started  
+**Phase:** 4 complete — beginning Phase 5 (REST API)  
 **Last updated:** 2026-04-22  
 **Game version at time of analysis:** 1.18.0.0  
 **Save created:** 2026-04-21  
+
+**Outstanding items before Phase 5:**
+- ⬜ 2.11 — `precisionFarming.xml` parser (fixture exists, parser deferred — revisit if precision farming data is needed in UI)
+- ⬜ 2.18 — Finance day structure test (advance in-game date and re-fetch farms.xml to confirm accumulate vs overwrite behaviour)
+
+**Key decisions made:**
+- SQLite (`better-sqlite3`) used instead of MariaDB — WAL mode, foreign keys enforced
+- HTTP endpoints are all served via `dedicated-server-savegame.html?file=<name>` (not separate `.xml` files)
+- Vehicles and economy served via HTTP; FTP confirmed byte-identical, HTTP preferred
+- Farm 2 (AI farm) filtered at ingestion — never in `farms` table; `ignoredFarmIds` in `app_settings`
+- Poller uses recursive `setTimeout` for dynamic interval support; node-cron used only for nightly archival
+- `vehicle_farm_mismatch` validator excludes `ignoredFarmIds` to avoid false positives from AI farm vehicles  
 
 ---
 

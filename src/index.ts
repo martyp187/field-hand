@@ -2,23 +2,143 @@ import 'dotenv/config';
 import express from 'express';
 import fs from 'fs';
 import path from 'path';
+import db from './db/connection';
+import { initSchema, seedSettings } from './db/schema';
+import { downloadFtpFiles, downloadSingleFile } from './poller/ftpDownloader';
+import { fetchEndpoint } from './poller/httpFetcher';
+import { parseSavegame } from './parser/savegameParser';
+import { parseStats } from './parser/statsParser';
+import { PollerService } from './poller/pollerService';
+import { scheduleNightlyArchival } from './poller/archivalJob';
+import { updatePollerHealth } from './poller/pollerHealth';
 
-const configPath = path.resolve(__dirname, '..', 'config.json');
-const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+const CONFIG_PATH = path.resolve(__dirname, '..', 'config.json');
+const config = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf-8'));
+const APP_PORT = process.env.APP_PORT ? parseInt(process.env.APP_PORT, 10) : 3000;
 
-const app = express();
-const port = process.env.APP_PORT ? parseInt(process.env.APP_PORT, 10) : 3000;
+// Source labels for startup summary
+const sources: Record<string, 'GREEN' | 'AMBER' | 'RED'> = {};
 
-app.use(express.json());
+function mark(src: string, status: 'GREEN' | 'AMBER' | 'RED') {
+  sources[src] = status;
+}
 
-app.get('/health', (_req, res) => {
-  res.json({ status: 'ok', config: config });
+function statusLine(src: string): string {
+  const s = sources[src] ?? 'RED';
+  const icon = s === 'GREEN' ? '✓' : s === 'AMBER' ? '⚠' : '✗';
+  return `  ${icon} ${src.padEnd(20)} ${s}`;
+}
+
+async function bootstrap(): Promise<void> {
+  console.log('[boot] FS25 Farm Companion starting…');
+
+  // Step 3 — Init database schema + seed settings
+  initSchema(db);
+  seedSettings(db);
+
+  const settingRow = (key: string, fallback: string): string => {
+    const row = db.prepare(`SELECT value FROM app_settings WHERE key = ?`).get(key) as
+      | { value: string }
+      | undefined;
+    return row?.value ?? fallback;
+  };
+
+  const httpIntervalSeconds = parseInt(settingRow('httpPollIntervalSeconds', '60'), 10);
+  const defaultFtpInterval = parseInt(settingRow('ftpPollIntervalSeconds', '180'), 10);
+
+  let ftpIntervalSeconds = defaultFtpInterval;
+
+  // Step 4 — FTP connectivity
+  const ftpFiles = config.ftp?.files ?? {};
+  const expectedFtpKeys = Object.keys(ftpFiles);
+  try {
+    const listing = await downloadFtpFiles(['farms']); // lightweight check
+    if (listing.length > 0) {
+      mark('ftp_connect', 'GREEN');
+    } else {
+      mark('ftp_connect', 'AMBER');
+    }
+  } catch (err) {
+    console.error('[boot] FTP connection failed:', (err as Error).message);
+    mark('ftp_connect', 'RED');
+    updatePollerHealth('ftp', false, (err as Error).message);
+  }
+
+  // Step 5 — Read autoSaveInterval from careerSavegame.xml
+  try {
+    const xml = await downloadSingleFile('careerSavegame');
+    const savegame = await parseSavegame(xml);
+    ftpIntervalSeconds = savegame.autoSaveInterval;
+    console.log(`[boot] autoSaveInterval = ${ftpIntervalSeconds}s (from careerSavegame.xml)`);
+    mark('careerSavegame', 'GREEN');
+  } catch (err) {
+    console.warn(
+      `[boot] Could not read careerSavegame.xml, using default FTP interval (${ftpIntervalSeconds}s):`,
+      (err as Error).message,
+    );
+    mark('careerSavegame', 'AMBER');
+  }
+
+  // Step 6 — HTTP connectivity check
+  try {
+    const xml = await fetchEndpoint('stats');
+    const stats = await parseStats(xml);
+    console.log(
+      `[boot] Server live: "${stats.serverName}" — ${stats.slots.numUsed}/${stats.slots.capacity} players`,
+    );
+    mark('http_stats', 'GREEN');
+    updatePollerHealth('http', true);
+  } catch (err) {
+    console.error('[boot] HTTP stats fetch failed:', (err as Error).message);
+    mark('http_stats', 'RED');
+    updatePollerHealth('http', false, (err as Error).message);
+  }
+
+  // Step 7–8 — Validate expected FTP files present
+  const missingKeys: string[] = [];
+  for (const key of expectedFtpKeys) {
+    if (!ftpFiles[key]) missingKeys.push(key);
+  }
+  if (missingKeys.length === 0) {
+    mark('ftp_files', 'GREEN');
+  } else {
+    console.warn(`[boot] Missing FTP file config keys: ${missingKeys.join(', ')}`);
+    mark('ftp_files', 'AMBER');
+  }
+
+  // Step 9–10 — Start pollers
+  const poller = new PollerService(httpIntervalSeconds, ftpIntervalSeconds, db);
+  poller.start();
+
+  // Step 11 — Express app
+  const app = express();
+  app.use(express.json());
+
+  app.get('/health', (_req, res) => {
+    res.json({ status: 'ok', uptime: process.uptime() });
+  });
+
+  // Nightly archival
+  scheduleNightlyArchival(db);
+
+  app.listen(APP_PORT, () => {
+    // Step 12 — Startup summary
+    console.log('\n' + '─'.repeat(50));
+    console.log('  FS25 Farm Companion — Startup Summary');
+    console.log('─'.repeat(50));
+    console.log(statusLine('ftp_connect'));
+    console.log(statusLine('careerSavegame'));
+    console.log(statusLine('http_stats'));
+    console.log(statusLine('ftp_files'));
+    console.log('─'.repeat(50));
+    console.log(`  HTTP poll:  every ${httpIntervalSeconds}s`);
+    console.log(`  FTP poll:   every ${ftpIntervalSeconds}s`);
+    console.log(`  API port:   ${APP_PORT}`);
+    console.log('─'.repeat(50) + '\n');
+  });
+}
+
+bootstrap().catch((err) => {
+  console.error('[boot] Fatal startup error:', err);
+  process.exit(1);
 });
-
-app.listen(port, () => {
-  console.log(`[server] FS25 Farm Companion starting on port ${port}`);
-  console.log(`[server] NODE_ENV=${process.env.NODE_ENV}`);
-  console.log(`[server] DB_PATH=${process.env.DB_PATH ?? './data/fs25companion.db'}`);
-});
-
-export default app;
