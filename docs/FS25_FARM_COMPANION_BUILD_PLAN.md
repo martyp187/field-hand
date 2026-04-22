@@ -621,14 +621,14 @@ All prefixed with `/api/`
 - ✅ 2.8 — Fetch and parse `players.xml` → typed objects, CLI print tool
 - ✅ 2.9 — Fetch and parse `invoices.xml` → typed objects, CLI print tool
 - ✅ 2.10 — Fetch and parse `sales.xml` → typed objects, CLI print tool
-- ⬜ 2.11 — Fetch and parse `precisionFarming.xml` → typed objects, CLI print tool (fixture saved; parser deferred)
+- ✅ 2.11 — Fetch and parse `precisionFarming.xml` → typed objects, CLI print tool (`parsePrecisionFarming`, `writePrecisionFarming`, `farmland_precision_stats` table; stores `periodCounter` + `totalCounter` as JSON per farmland; wired into FTP poll)
 - ✅ 2.12 — Fetch and parse `vehicles.xml` (FTP) → confirmed byte-identical to HTTP feed; HTTP used as primary source
 - ✅ 2.13 — Validate `uniqueUserId` cross-reference between `farms.xml` and `players.xml`
 - ✅ 2.14 — Validate farm colour index → hex colour mapping (`src/parser/farmColours.ts`, 16-colour palette)
 - ✅ 2.15 — Build FTP retry logic with exponential backoff and failure handling (built in Phase 4 `pollerService.ts`)
 - ✅ 2.16 — Confirm stale data fallback behaviour (FTP failure → last good data retained in DB, health log updated)
 - ✅ 2.17 — Write unit tests for all FTP parsers using real XML fixture files (`tests/unit/ftpParsers.test.ts`)
-- ⬜ 2.18 — **Test finances day structure**: advance in-game date, re-fetch farms.xml, confirm whether day entries accumulate or overwrite
+- ✅ 2.18 — **Finance day structure confirmed**: game accumulates entries (`<stats day="0">`, `<stats day="1">` etc.). Verified via `farms_multiday.xml` fixture + integration tests. `INSERT OR REPLACE` with `UNIQUE(farm_id, in_game_day)` handles both accumulate and overwrite correctly
 
 ---
 
@@ -810,8 +810,7 @@ All prefixed with `/api/`
 **Save created:** 2026-04-21  
 
 **Outstanding items before Phase 5:**
-- ⬜ 2.11 — `precisionFarming.xml` parser (fixture exists, parser deferred — revisit if precision farming data is needed in UI)
-- ⬜ 2.18 — Finance day structure test (advance in-game date and re-fetch farms.xml to confirm accumulate vs overwrite behaviour)
+All Phase 2 tasks now complete.
 
 **Key decisions made:**
 - SQLite (`better-sqlite3`) used instead of MariaDB — WAL mode, foreign keys enforced

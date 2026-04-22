@@ -19,6 +19,8 @@ import { writeEnvironment } from '../db/writers/environmentWriter';
 import { writeEconomy } from '../db/writers/economyWriter';
 import { writeInvoices } from '../db/writers/invoicesWriter';
 import { writeSales } from '../db/writers/salesWriter';
+import { writePrecisionFarming } from '../db/writers/precisionFarmingWriter';
+import { parsePrecisionFarming } from '../parser/precisionFarmingParser';
 import { updatePollerHealth, checkStaleAndAlert } from './pollerHealth';
 import {
   validateServerStats,
@@ -33,7 +35,7 @@ const config = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, '..', '..', 'config.json'), 'utf-8'),
 );
 const IGNORED_FARM_IDS: number[] = config.ignoredFarmIds ?? [2];
-const FTP_KEYS = ['farms', 'fields', 'environment', 'players', 'invoices', 'sales'];
+const FTP_KEYS = ['farms', 'fields', 'environment', 'players', 'invoices', 'sales', 'precisionFarming'];
 
 async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
   let lastErr: Error = new Error('No attempts made');
@@ -220,6 +222,10 @@ export class PollerService {
           }
           case 'sales': {
             writeSales(await parseSales(content), this.db);
+            break;
+          }
+          case 'precisionFarming': {
+            writePrecisionFarming(await parsePrecisionFarming(content), this.db);
             break;
           }
         }

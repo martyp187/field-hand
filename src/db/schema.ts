@@ -266,6 +266,13 @@ export function initSchema(db: Database): void {
       last_generated_at TEXT
     );
 
+    CREATE TABLE IF NOT EXISTS farmland_precision_stats (
+      farmland_id INTEGER PRIMARY KEY,
+      period_counter_json TEXT NOT NULL,
+      total_counter_json TEXT NOT NULL,
+      last_updated TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS poller_health (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       source_name TEXT NOT NULL UNIQUE,

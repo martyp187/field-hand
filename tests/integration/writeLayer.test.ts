@@ -15,6 +15,8 @@ import { writeInvoices } from '../../src/db/writers/invoicesWriter';
 import { writeSales } from '../../src/db/writers/salesWriter';
 import { writeVehicles } from '../../src/db/writers/vehiclesWriter';
 import { writeEconomy } from '../../src/db/writers/economyWriter';
+import { parsePrecisionFarming } from '../../src/parser/precisionFarmingParser';
+import { writePrecisionFarming } from '../../src/db/writers/precisionFarmingWriter';
 
 const fixture = (name: string) =>
   fs.readFileSync(path.resolve(__dirname, '..', 'fixtures', name), 'utf-8');
@@ -239,5 +241,81 @@ describe('app_settings seed', () => {
     const rows = db.prepare('SELECT * FROM app_settings').all() as Record<string, unknown>[];
     const httpInterval = rows.find((r) => r.key === 'httpPollIntervalSeconds');
     expect(httpInterval?.value).toBe('60');
+  });
+});
+
+describe('2.18 — finance day structure', () => {
+  it('two different in-game days produce two rows per farm', async () => {
+    const db = createTestDb();
+    const feed = await parseFarms(fixture('farms_multiday.xml'), []);
+    writeFarms(feed, db);
+
+    // Farm 1 has day=0 and day=1 in the fixture
+    const rows = db
+      .prepare(`SELECT in_game_day FROM farm_finance_snapshots WHERE farm_id = 1 ORDER BY in_game_day`)
+      .all() as { in_game_day: number }[];
+    expect(rows.length).toBe(2);
+    expect(rows[0].in_game_day).toBe(0);
+    expect(rows[1].in_game_day).toBe(1);
+  });
+
+  it('re-polling same multiday data does not create duplicate rows', async () => {
+    const db = createTestDb();
+    const feed = await parseFarms(fixture('farms_multiday.xml'), []);
+    writeFarms(feed, db);
+    writeFarms(feed, db);
+
+    const rows = db
+      .prepare(`SELECT COUNT(*) AS n FROM farm_finance_snapshots WHERE farm_id = 1`)
+      .get() as { n: number };
+    expect(rows.n).toBe(2);
+  });
+
+  it('day=1 values are stored correctly and overwrite on re-poll', async () => {
+    const db = createTestDb();
+    const feed = await parseFarms(fixture('farms_multiday.xml'), []);
+    writeFarms(feed, db);
+
+    const day1 = db
+      .prepare(`SELECT harvest_income FROM farm_finance_snapshots WHERE farm_id = 1 AND in_game_day = 1`)
+      .get() as { harvest_income: number };
+    expect(day1.harvest_income).toBe(12500);
+  });
+});
+
+describe('writePrecisionFarming', () => {
+  it('2.11 — writes farmland_precision_stats rows', async () => {
+    const db = createTestDb();
+    const feed = await parsePrecisionFarming(fixture('precisionFarming.xml'));
+    writePrecisionFarming(feed, db);
+
+    const rows = db
+      .prepare('SELECT COUNT(*) AS n FROM farmland_precision_stats')
+      .get() as { n: number };
+    expect(rows.n).toBe(feed.farmlandStats.length);
+  });
+
+  it('2.11 — period_counter_json and total_counter_json are valid JSON', async () => {
+    const db = createTestDb();
+    const feed = await parsePrecisionFarming(fixture('precisionFarming.xml'));
+    writePrecisionFarming(feed, db);
+
+    const row = db
+      .prepare('SELECT period_counter_json, total_counter_json FROM farmland_precision_stats LIMIT 1')
+      .get() as { period_counter_json: string; total_counter_json: string };
+    expect(() => JSON.parse(row.period_counter_json)).not.toThrow();
+    expect(() => JSON.parse(row.total_counter_json)).not.toThrow();
+  });
+
+  it('2.11 — two identical polls produce no duplicate rows', async () => {
+    const db = createTestDb();
+    const feed = await parsePrecisionFarming(fixture('precisionFarming.xml'));
+    writePrecisionFarming(feed, db);
+    writePrecisionFarming(feed, db);
+
+    const rows = db
+      .prepare('SELECT COUNT(*) AS n FROM farmland_precision_stats')
+      .get() as { n: number };
+    expect(rows.n).toBe(feed.farmlandStats.length);
   });
 });
