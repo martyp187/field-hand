@@ -1,6 +1,6 @@
 {
   "ftp": {
-    "savegamePath": "/gameserver/saves/savegame1",
+    "savegamePath": "/profile/savegame2",
     "files": {
       "farms":            "farms.xml",
       "fields":           "fields.xml",
@@ -19,10 +19,10 @@
   },
   "http": {
     "endpoints": {
-      "stats":    "/feed/dedicated-server-stats.xml",
-      "vehicles": "/feed/dedicated-server-vehicles.xml",
-      "economy":  "/feed/dedicated-server-economy.xml",
-      "savegame": "/feed/dedicated-server-savegame.xml"
+      "stats":    "/feed/dedicated-server-stats.html",
+      "vehicles": "/feed/dedicated-server-vehicles.html",
+      "economy":  "/feed/dedicated-server-economy.html",
+      "savegame": "/feed/dedicated-server-savegame.html"
     },
     "fallbackPollIntervalSeconds": 60
   },
@@ -31,5 +31,5 @@
     "hourlyRetentionDays": 90
   },
   "ignoredFarmIds": [2],
-  "mapImageUrl": null
+  "mapImageUrl": "http://149.102.148.127:8590/feed/dedicated-server-stats-map.jpg?code=UJbUIL4Z1aMHgWZw&quality=80&size=2048"
 }
