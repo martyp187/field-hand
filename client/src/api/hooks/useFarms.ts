@@ -130,6 +130,38 @@ export function useAllFields() {
   });
 }
 
+export interface FarmStatistics {
+  id: number;
+  farm_id: number;
+  snapshot_time: string;
+  worked_hectares: number | null;
+  cultivated_hectares: number | null;
+  sown_hectares: number | null;
+  threshed_hectares: number | null;
+  sprayed_hectares: number | null;
+  plowed_hectares: number | null;
+  fuel_usage: number | null;
+  revenue: number | null;
+  expenses: number | null;
+  play_time: number | null;
+  mission_count: number | null;
+  bale_count: number | null;
+  breed_cows_count: number | null;
+  breed_sheep_count: number | null;
+  breed_pigs_count: number | null;
+  breed_chicken_count: number | null;
+  breed_horses_count: number | null;
+  breed_goats_count: number | null;
+}
+
+export function useFarmStatistics(id: number | null) {
+  return useQuery<FarmStatistics[]>({
+    queryKey: ['farms', id, 'statistics'],
+    queryFn: () => apiFetch<FarmStatistics[]>(`/api/farms/${id}/statistics`),
+    enabled: id !== null,
+  });
+}
+
 export function useCreateTask() {
   const qc = useQueryClient();
   return useMutation({

@@ -747,14 +747,14 @@ All prefixed with `/api/`
 ---
 
 ### Phase 8 — Server Overview & Farm Dashboard
-- ⬜ 8.1 — Server overview page (players online, in-game time, weather, season, slot usage)
-- ⬜ 8.2 — Weather forecast widget (multi-day visual forecast)
-- ⬜ 8.3 — Farm list / landing page (all farms with balance, ha, vehicle count)
-- ⬜ 8.4 — Farm detail page (balance, loan, land portfolio, vehicle fleet)
-- ⬜ 8.5 — Farm finance history chart (daily income/expense categories stacked)
-- ⬜ 8.6 — Farm operational stats panel (worked ha, fuel, play time)
-- ⬜ 8.7 — Vehicle fleet panel (owned vs mission, fill levels, AI active indicator)
-- ⬜ 8.8 — Map overlay (farmland ownership by farm colour, player dot positions)
+- ✅ 8.1 — Server overview page (players online, in-game time, weather, season, slot usage)
+- ✅ 8.2 — Weather forecast widget (multi-day visual forecast)
+- ✅ 8.3 — Farm list / landing page (all farms with balance, ha, vehicle count)
+- ✅ 8.4 — Farm detail page (balance, loan, land portfolio, vehicle fleet)
+- ✅ 8.5 — Farm finance history chart (daily income/expense categories stacked)
+- ✅ 8.6 — Farm operational stats panel (worked ha, fuel, play time)
+- ✅ 8.7 — Vehicle fleet panel (owned vs mission, fill levels, AI active indicator)
+- ✅ 8.8 — Map overlay (farmland ownership by farm colour; SVG circles on dark canvas; hover tooltips; image background deferred to Phase 12 polish)
 
 ---
 
@@ -804,8 +804,8 @@ All prefixed with `/api/`
 
 ## 13. Current Status
 
-**Phase:** 7 complete — beginning Phase 8 (Server Overview & Farm Dashboard)  
-**Last updated:** 2026-04-22  
+**Phase:** 8 complete — beginning Phase 9 (Task Board UI)  
+**Last updated:** 2026-04-23  
 **Game version at time of analysis:** 1.18.0.0  
 **Save created:** 2026-04-21  
 
