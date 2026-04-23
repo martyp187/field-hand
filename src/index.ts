@@ -121,6 +121,16 @@ async function bootstrap(): Promise<void> {
 
   app.use('/api', createApiRouter(db));
 
+  // Serve the built Vite client in production
+  const CLIENT_DIST = path.resolve(__dirname, '..', 'client', 'dist');
+  if (fs.existsSync(CLIENT_DIST)) {
+    app.use(express.static(CLIENT_DIST));
+    // SPA fallback — send index.html for any non-API route
+    app.get('*', (_req, res) => {
+      res.sendFile(path.join(CLIENT_DIST, 'index.html'));
+    });
+  }
+
   // Nightly archival
   scheduleNightlyArchival(db);
 

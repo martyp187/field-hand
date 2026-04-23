@@ -731,18 +731,18 @@ All prefixed with `/api/`
 ### Phase 7 — Frontend Foundation
 > Goal: React app scaffolded with routing, shadcn/ui installed, SSE client connected, design system in place. No feature pages yet.
 
-- ⬜ 7.1 — Scaffold React + Vite + TypeScript app
-- ⬜ 7.2 — Set up Tailwind CSS
-- ⬜ 7.3 — Initialise shadcn/ui (`npx shadcn-ui@latest init`) — configure theme, base components
-- ⬜ 7.4 — Add core shadcn/ui components: Button, Card, Badge, Table, Dialog, Sheet, Tabs, Select, Input, Form, Tooltip, Separator, Skeleton
-- ⬜ 7.5 — Add Recharts alongside shadcn/ui for all chart components
-- ⬜ 7.6 — Set up React Router (all page routes defined)
-- ⬜ 7.7 — Build typed API client (typed fetch hooks per endpoint)
-- ⬜ 7.8 — Set up SSE client using native browser `EventSource` API — connect to `GET /api/events`
-- ⬜ 7.9 — Build connection status indicator (SSE has built-in reconnection but surface status visually)
-- ⬜ 7.10 — Build navigation shell using shadcn/ui components
-- ⬜ 7.11 — Build farm colour theming system (colour index → CSS variable / Tailwind class)
-- ⬜ 7.12 — Build farm selector / active farm context provider
+- ✅ 7.1 — Scaffold React + Vite + TypeScript app
+- ✅ 7.2 — Set up Tailwind CSS (dark mode default, shadcn CSS variables)
+- ✅ 7.3 — Initialise shadcn/ui — configure theme, base components
+- ✅ 7.4 — Add core shadcn/ui components: Button, Card, Badge, Table, Dialog, Sheet, Tabs, Select, Input, Form, Tooltip, Separator, Skeleton, Progress, Avatar, ScrollArea, Collapsible, ToggleGroup, Sonner, Alert, Popover, HoverCard, Command
+- ✅ 7.5 — Add Recharts + TanStack Query + Sonner toast notifications
+- ✅ 7.6 — Set up React Router (all 13 page routes defined including planning sub-routes)
+- ✅ 7.7 — Build typed API client + React Query hooks per endpoint group (useServer, useFarms, useTasks, useGoals, useEconomy)
+- ✅ 7.8 — Set up SSE client using native browser EventSource — connect to GET /api/events; auto-reconnect on error
+- ✅ 7.9 — Build connection status indicator (connected/connecting/disconnected with colour coding)
+- ✅ 7.10 — Build navigation shell: Sidebar, SidebarNav, SidebarSection with collapsible Planning section
+- ✅ 7.11 — Farm colour theming via inline style on farm colour_hex; FarmColourDot component
+- ✅ 7.12 — PlayerContext (nickname + localStorage), FarmContext (activeFarm + auto-resolve from players API), WelcomeDialog (first-visit non-dismissable)
 
 ---
 
@@ -804,7 +804,7 @@ All prefixed with `/api/`
 
 ## 13. Current Status
 
-**Phase:** 6 complete — beginning Phase 7 (Frontend Foundation)  
+**Phase:** 7 complete — beginning Phase 8 (Server Overview & Farm Dashboard)  
 **Last updated:** 2026-04-22  
 **Game version at time of analysis:** 1.18.0.0  
 **Save created:** 2026-04-21  
