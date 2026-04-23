@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '@/api/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiFetch, apiMutate } from '@/api/client';
 
 export interface ServerSnapshot {
   server_name: string | null;
@@ -58,5 +58,21 @@ export function useServerWeather() {
     queryKey: ['server', 'weather'],
     queryFn: () => apiFetch<ServerWeather>('/api/server/weather'),
     refetchInterval: 60_000,
+  });
+}
+
+export function useSettings() {
+  return useQuery<Record<string, string>>({
+    queryKey: ['settings'],
+    queryFn: () => apiFetch<Record<string, string>>('/api/settings'),
+  });
+}
+
+export function useUpdateSetting() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ key, value }: { key: string; value: string }) =>
+      apiMutate<{ key: string; value: string }>(`/api/settings/${key}`, 'PATCH', { value }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['settings'] }),
   });
 }

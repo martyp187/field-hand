@@ -123,10 +123,29 @@ export function useFarmlands() {
   });
 }
 
+export interface FieldState {
+  field_id: number;
+  fruit_type: string | null;
+  planned_fruit: string | null;
+  growth_state: number;
+  last_growth_state: number;
+  ground_type: string | null;
+  weed_state: number;
+  spray_type: string | null;
+  spray_level: number;
+  lime_level: number;
+  roller_level: number;
+  plow_level: number;
+  stubble_shred_level: number;
+  water_level: number;
+  stone_level: number;
+  last_updated: string;
+}
+
 export function useAllFields() {
-  return useQuery<Record<string, unknown>[]>({
+  return useQuery<FieldState[]>({
     queryKey: ['fields', 'all'],
-    queryFn: () => apiFetch<Record<string, unknown>[]>('/api/fields'),
+    queryFn: () => apiFetch<FieldState[]>('/api/fields'),
   });
 }
 

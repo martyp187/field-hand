@@ -95,6 +95,29 @@ async function bootstrap(): Promise<void> {
     updatePollerHealth('http', false, (err as Error).message);
   }
 
+  // Step 6.5 — Fetch and cache map overview image from config.mapImageUrl
+  const configMapUrl = config.mapImageUrl as string | undefined;
+  if (configMapUrl) {
+    const MAP_IMAGE_PATH = path.resolve(__dirname, '..', 'data', 'map-image');
+    const MAP_IMAGE_MIME_PATH = path.resolve(__dirname, '..', 'data', 'map-image.mime');
+    try {
+      const imgRes = await fetch(configMapUrl);
+      if (imgRes.ok) {
+        const buf = Buffer.from(await imgRes.arrayBuffer());
+        fs.writeFileSync(MAP_IMAGE_PATH, buf);
+        fs.writeFileSync(MAP_IMAGE_MIME_PATH, imgRes.headers.get('content-type') ?? 'image/jpeg');
+        console.log(`[boot] Map image cached (${(buf.length / 1024).toFixed(0)} KB)`);
+        mark('map_image', 'GREEN');
+      } else {
+        console.warn(`[boot] Map image fetch: HTTP ${imgRes.status}`);
+        mark('map_image', 'AMBER');
+      }
+    } catch (err) {
+      console.warn(`[boot] Map image fetch failed: ${(err as Error).message}`);
+      mark('map_image', 'AMBER');
+    }
+  }
+
   // Step 7–8 — Validate expected FTP files present
   const missingKeys: string[] = [];
   for (const key of expectedFtpKeys) {
@@ -143,6 +166,7 @@ async function bootstrap(): Promise<void> {
     console.log(statusLine('careerSavegame'));
     console.log(statusLine('http_stats'));
     console.log(statusLine('ftp_files'));
+    if (configMapUrl) console.log(statusLine('map_image'));
     console.log('─'.repeat(50));
     console.log(`  HTTP poll:  every ${httpIntervalSeconds}s`);
     console.log(`  FTP poll:   every ${ftpIntervalSeconds}s`);

@@ -11,6 +11,7 @@ import { createTasksRouter } from './routes/tasks';
 import { createGoalsRouter } from './routes/goals';
 import { createPollerRouter } from './routes/poller';
 import { createEventsRouter } from './routes/events';
+import { createSettingsRouter } from './routes/settings';
 
 export function createApiRouter(db: Database): Router {
   const router = Router();
@@ -26,6 +27,7 @@ export function createApiRouter(db: Database): Router {
   router.use('/goals', createGoalsRouter(db));
   router.use('/poller', createPollerRouter(db));
   router.use('/events', createEventsRouter());
+  router.use('/settings', createSettingsRouter(db));
 
   return router;
 }

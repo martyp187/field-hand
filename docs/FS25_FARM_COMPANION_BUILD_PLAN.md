@@ -770,13 +770,13 @@ All prefixed with `/api/`
 ---
 
 ### Phase 10 — Planning Tools
-- ⬜ 10.1 — Crop rotation planner (per-field, multi-season timeline view)
-- ⬜ 10.2 — Field state overview (crop type, growth stage, ground type, soil health per field)
-- ⬜ 10.3 — Market prices panel (seasonal price curves per crop, current period highlighted, best sell timing)
-- ⬜ 10.4 — Financial planner (goal setting, time-to-goal projection, income trend)
-- ⬜ 10.5 — Profit calculator (grow vs buy comparison using economy prices + yield estimates)
-- ⬜ 10.6 — Livestock feed tracker and calculator (manual head count, daily requirement, days of feed remaining)
-- ⬜ 10.7 — Used vehicle market browser (from sales.xml)
+- ✅ 10.1 — Crop rotation planner (per-field, multi-season timeline view)
+- ✅ 10.2 — Field state overview (crop type, growth stage, ground type, soil health per field)
+- ✅ 10.3 — Market prices panel (seasonal price curves per crop, current period highlighted, best sell timing)
+- ✅ 10.4 — Financial planner (goal setting, time-to-goal projection, income trend)
+- ✅ 10.5 — Profit calculator (grow vs buy comparison using economy prices + yield estimates)
+- ✅ 10.6 — Livestock feed tracker and calculator (manual head count, daily requirement, days of feed remaining)
+- ✅ 10.7 — Used vehicle market browser (from sales.xml)
 
 ---
 
@@ -805,7 +805,7 @@ All prefixed with `/api/`
 
 ## 13. Current Status
 
-**Phase:** 9 complete — beginning Phase 10 (Planning Tools)  
+**Phase:** 10 complete — beginning Phase 11 (Notifications & Alerts)  
 **Last updated:** 2026-04-23  
 **Game version at time of analysis:** 1.18.0.0  
 **Save created:** 2026-04-21  
