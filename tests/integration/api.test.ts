@@ -313,3 +313,236 @@ describe('5.22 — GET /api/poller/health', () => {
     expect(res.body).toHaveProperty('unresolvedAlerts');
   });
 });
+
+// ─── Phase 6 ────────────────────────────────────────────────────────────────
+
+describe('6.2 — PATCH /api/tasks/:id/unclaim', () => {
+  it('unclaims a task and reverts status to OPEN', async () => {
+    const { app, db } = await buildApp();
+    const task = db
+      .prepare(
+        `INSERT INTO tasks (title, status, priority, created_at) VALUES ('Claimable', 'IN_PROGRESS', 'MEDIUM', ?)`,
+      )
+      .run(new Date().toISOString());
+    const taskId = task.lastInsertRowid;
+    db.prepare(
+      `INSERT INTO task_claims (task_id, player_nickname, claimed_at) VALUES (?, 'alice', ?)`,
+    ).run(taskId, new Date().toISOString());
+
+    const res = await request(app).patch(`/api/tasks/${taskId}/unclaim`);
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('OPEN');
+  });
+
+  it('returns 404 for unknown task', async () => {
+    const { app } = await buildApp();
+    const res = await request(app).patch('/api/tasks/99999/unclaim');
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 400 when task is not claimed', async () => {
+    const { app, db } = await buildApp();
+    const task = db
+      .prepare(
+        `INSERT INTO tasks (title, status, priority, created_at) VALUES ('Open task', 'OPEN', 'MEDIUM', ?)`,
+      )
+      .run(new Date().toISOString());
+
+    const res = await request(app).patch(`/api/tasks/${task.lastInsertRowid}/unclaim`);
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('6.5 — POST /api/goals', () => {
+  it('creates a goal and returns 201', async () => {
+    const { app } = await buildApp();
+    const res = await request(app).post('/api/goals').send({
+      title: 'Earn $500,000',
+      targetValue: 500000,
+      unit: 'USD',
+    });
+    expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty('id');
+    expect(res.body.title).toBe('Earn $500,000');
+    expect(res.body.status).toBe('ACTIVE');
+    expect(res.body.target_value).toBe(500000);
+  });
+
+  it('returns 400 when title is missing', async () => {
+    const { app } = await buildApp();
+    const res = await request(app).post('/api/goals').send({ targetValue: 100 });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('6.5 — PATCH /api/goals/:id/progress', () => {
+  it('updates current_value', async () => {
+    const { app, db } = await buildApp();
+    const goal = db
+      .prepare(
+        `INSERT INTO server_goals (title, target_value, current_value, status, created_at) VALUES ('Test', 1000, 0, 'ACTIVE', ?)`,
+      )
+      .run(new Date().toISOString());
+
+    const res = await request(app)
+      .patch(`/api/goals/${goal.lastInsertRowid}/progress`)
+      .send({ currentValue: 400 });
+    expect(res.status).toBe(200);
+    expect(res.body.current_value).toBe(400);
+    expect(res.body.status).toBe('ACTIVE');
+  });
+
+  it('auto-completes when current_value reaches target', async () => {
+    const { app, db } = await buildApp();
+    const goal = db
+      .prepare(
+        `INSERT INTO server_goals (title, target_value, current_value, status, created_at) VALUES ('Nearly done', 1000, 0, 'ACTIVE', ?)`,
+      )
+      .run(new Date().toISOString());
+
+    const res = await request(app)
+      .patch(`/api/goals/${goal.lastInsertRowid}/progress`)
+      .send({ currentValue: 1000 });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('COMPLETED');
+    expect(res.body.completed_at).toBeTruthy();
+  });
+
+  it('returns 400 when currentValue is not a number', async () => {
+    const { app, db } = await buildApp();
+    const goal = db
+      .prepare(
+        `INSERT INTO server_goals (title, target_value, current_value, status, created_at) VALUES ('G', 100, 0, 'ACTIVE', ?)`,
+      )
+      .run(new Date().toISOString());
+
+    const res = await request(app)
+      .patch(`/api/goals/${goal.lastInsertRowid}/progress`)
+      .send({ currentValue: 'lots' });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('6.5 — PATCH /api/goals/:id/status', () => {
+  it('cancels a goal', async () => {
+    const { app, db } = await buildApp();
+    const goal = db
+      .prepare(
+        `INSERT INTO server_goals (title, target_value, current_value, status, created_at) VALUES ('Cancel me', 100, 0, 'ACTIVE', ?)`,
+      )
+      .run(new Date().toISOString());
+
+    const res = await request(app)
+      .patch(`/api/goals/${goal.lastInsertRowid}/status`)
+      .send({ status: 'CANCELLED' });
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('CANCELLED');
+  });
+
+  it('returns 400 for invalid status', async () => {
+    const { app, db } = await buildApp();
+    const goal = db
+      .prepare(
+        `INSERT INTO server_goals (title, target_value, current_value, status, created_at) VALUES ('G', 100, 0, 'ACTIVE', ?)`,
+      )
+      .run(new Date().toISOString());
+
+    const res = await request(app)
+      .patch(`/api/goals/${goal.lastInsertRowid}/status`)
+      .send({ status: 'BOGUS' });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('6.6 — GET /api/tasks/templates', () => {
+  it('returns empty array when no templates exist', async () => {
+    const { app } = await buildApp();
+    const res = await request(app).get('/api/tasks/templates');
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual([]);
+  });
+});
+
+describe('6.6 — POST /api/tasks/templates', () => {
+  it('creates a template and returns 201', async () => {
+    const { app } = await buildApp();
+    const res = await request(app).post('/api/tasks/templates').send({
+      title: 'Refuel {{vehicleName}}',
+      category: 'Maintenance',
+      priority: 'HIGH',
+      triggerType: 'FUEL_LOW',
+      triggerValue: { fuelType: 'DIESEL', thresholdLiters: 50, cooldownMinutes: 60 },
+    });
+    expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty('id');
+    expect(res.body.title).toBe('Refuel {{vehicleName}}');
+    expect(res.body.trigger_type).toBe('FUEL_LOW');
+  });
+
+  it('returns 400 when title is missing', async () => {
+    const { app } = await buildApp();
+    const res = await request(app).post('/api/tasks/templates').send({ category: 'Harvest' });
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('6.6 — DELETE /api/tasks/templates/:id', () => {
+  it('deletes a template and returns 204', async () => {
+    const { app, db } = await buildApp();
+    const tpl = db
+      .prepare(
+        `INSERT INTO recurring_task_templates (title, priority) VALUES ('To delete', 'LOW')`,
+      )
+      .run();
+
+    const res = await request(app).delete(`/api/tasks/templates/${tpl.lastInsertRowid}`);
+    expect(res.status).toBe(204);
+  });
+
+  it('returns 404 for unknown template', async () => {
+    const { app } = await buildApp();
+    const res = await request(app).delete('/api/tasks/templates/99999');
+    expect(res.status).toBe(404);
+  });
+});
+
+describe('6.6 — POST /api/tasks/templates/:id/generate', () => {
+  it('generates a task from a template', async () => {
+    const { app, db } = await buildApp();
+    const tpl = db
+      .prepare(
+        `INSERT INTO recurring_task_templates (title, priority, category) VALUES ('Season prep', 'HIGH', 'Planning')`,
+      )
+      .run();
+
+    const res = await request(app)
+      .post(`/api/tasks/templates/${tpl.lastInsertRowid}/generate`)
+      .send({});
+    expect(res.status).toBe(200);
+    expect(res.body.generated).toBe(1);
+    expect(res.body.task).toHaveProperty('id');
+    expect(res.body.task.title).toBe('Season prep');
+    expect(res.body.task.status).toBe('OPEN');
+  });
+
+  it('returns 404 for unknown template', async () => {
+    const { app } = await buildApp();
+    const res = await request(app).post('/api/tasks/templates/99999/generate').send({});
+    expect(res.status).toBe(404);
+  });
+
+  it('interpolates context into title', async () => {
+    const { app, db } = await buildApp();
+    const tpl = db
+      .prepare(
+        `INSERT INTO recurring_task_templates (title, priority) VALUES ('Refuel {{vehicleName}}', 'MEDIUM')`,
+      )
+      .run();
+
+    const res = await request(app)
+      .post(`/api/tasks/templates/${tpl.lastInsertRowid}/generate`)
+      .send({ vehicleName: 'Big Tractor' });
+    expect(res.status).toBe(200);
+    expect(res.body.task.title).toBe('Refuel Big Tractor');
+  });
+});

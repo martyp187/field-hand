@@ -716,15 +716,15 @@ All prefixed with `/api/`
 ### Phase 6 — Task Board Backend
 > Goal: Full task data layer and API operational.
 
-- ⬜ 6.1 — Task creation with farm assignment, category, priority, due date
-- ⬜ 6.2 — Task claim/unclaim logic (one claim per task at a time)
-- ⬜ 6.3 — Task status transitions (Open → Claimed → In Progress → Done)
-- ⬜ 6.4 — Personal task list aggregation per player nickname
-- ⬜ 6.5 — Server-wide goals: creation, progress tracking, completion detection
-- ⬜ 6.6 — Recurring task template engine (generate tasks from templates on schedule or trigger)
-- ⬜ 6.7 — Auto-task trigger: vehicle fuel below threshold → generate task
-- ⬜ 6.8 — Auto-task trigger: season change detected in environment.xml → generate task
-- ⬜ 6.9 — Broadcast SSE `task-update` event when any task is created, claimed, or status-changed
+- ✅ 6.1 — Task creation with farm assignment, category, priority, due date
+- ✅ 6.2 — Task claim/unclaim logic (one claim per task at a time)
+- ✅ 6.3 — Task status transitions (Open → Claimed → In Progress → Done)
+- ✅ 6.4 — Personal task list aggregation per player nickname
+- ✅ 6.5 — Server-wide goals: creation, progress tracking, completion detection
+- ✅ 6.6 — Recurring task template engine (generate tasks from templates on schedule or trigger)
+- ✅ 6.7 — Auto-task trigger: vehicle fuel below threshold → generate task
+- ✅ 6.8 — Auto-task trigger: season change detected in environment.xml → generate task
+- ✅ 6.9 — Broadcast SSE `task-update` event when any task is created, claimed, or status-changed
 
 ---
 
@@ -804,7 +804,7 @@ All prefixed with `/api/`
 
 ## 13. Current Status
 
-**Phase:** 5 complete — beginning Phase 6 (Task Board Backend)  
+**Phase:** 6 complete — beginning Phase 7 (Frontend Foundation)  
 **Last updated:** 2026-04-22  
 **Game version at time of analysis:** 1.18.0.0  
 **Save created:** 2026-04-21  

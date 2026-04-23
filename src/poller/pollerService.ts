@@ -29,6 +29,8 @@ import {
   validateFields,
   validateVehicles,
 } from './validators';
+import { generateTasksFromTrigger, generateTaskFromTemplateId } from '../tasks/templateEngine';
+import type { VehicleFull } from '../types/vehicles';
 import fs from 'fs';
 import path from 'path';
 
@@ -37,6 +39,8 @@ const config = JSON.parse(
 );
 const IGNORED_FARM_IDS: number[] = config.ignoredFarmIds ?? [2];
 const FTP_KEYS = ['farms', 'fields', 'environment', 'players', 'invoices', 'sales', 'precisionFarming'];
+
+const FUEL_FILL_TYPES = new Set(['DIESEL', 'DEF', 'METHANE', 'ELECTRICCHARGE']);
 
 async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3): Promise<T> {
   let lastErr: Error = new Error('No attempts made');
@@ -184,6 +188,9 @@ export class PollerService {
     writeVehicles(vehicles, this.db);
     writeEconomy(economy, this.db);
 
+    // 6.7 — Auto-task trigger: fuel below threshold
+    this.checkFuelLevels(vehicles.vehicles);
+
     updatePollerHealth('http', true, undefined, this.db);
     broadcast('server-update', {
       serverName: stats.serverName,
@@ -193,6 +200,51 @@ export class PollerService {
       gameVersion: stats.gameVersion,
     });
     console.log(`[poller/http] OK — ${stats.slots.numUsed}/${stats.slots.capacity} players online`);
+  }
+
+  // 6.7 — Check each owned vehicle's fuel fill types against FUEL_LOW templates.
+  // Each template's trigger_value JSON: { fuelType, thresholdLiters, cooldownMinutes }
+  private checkFuelLevels(vehicles: VehicleFull[]): void {
+    const templates = this.db
+      .prepare(
+        `SELECT id, trigger_value FROM recurring_task_templates WHERE trigger_type = 'FUEL_LOW'`,
+      )
+      .all() as Array<{ id: number; trigger_value: string | null }>;
+
+    if (templates.length === 0) return;
+
+    for (const v of vehicles) {
+      if (v.propertyState !== 'OWNED') continue;
+
+      for (const fill of v.fills) {
+        if (!FUEL_FILL_TYPES.has(fill.type.toUpperCase()) || fill.level <= 0) continue;
+
+        for (const tpl of templates) {
+          let cfg: { fuelType?: string; thresholdLiters?: number } = {};
+          try {
+            cfg = tpl.trigger_value ? JSON.parse(tpl.trigger_value) : {};
+          } catch {
+            continue;
+          }
+
+          const fuelType = (cfg.fuelType ?? 'DIESEL').toUpperCase();
+          if (fill.type.toUpperCase() !== fuelType) continue;
+          if (fill.level >= (cfg.thresholdLiters ?? 50)) continue;
+
+          generateTaskFromTemplateId(
+            tpl.id,
+            {
+              vehicleName: v.name,
+              vehicleId: v.uniqueId,
+              fuelType: fill.type,
+              fuelLevel: fill.level.toFixed(1),
+            },
+            this.db,
+            true, // respect cooldown
+          );
+        }
+      }
+    }
   }
 
   private async pollFtp(): Promise<void> {
@@ -215,7 +267,24 @@ export class PollerService {
             break;
           }
           case 'environment': {
-            writeEnvironment(await parseEnvironment(content), this.db);
+            const env = await parseEnvironment(content);
+            // 6.8 — Detect season change before writing so we can compare
+            const prev = this.db
+              .prepare(`SELECT season FROM environment_snapshots ORDER BY id DESC LIMIT 1`)
+              .get() as { season: string } | undefined;
+            writeEnvironment(env, this.db);
+            if (prev?.season && prev.season !== env.currentSeason) {
+              const count = generateTasksFromTrigger(
+                'SEASON_CHANGE',
+                { oldSeason: prev.season, newSeason: env.currentSeason },
+                this.db,
+              );
+              if (count > 0) {
+                console.log(
+                  `[poller/ftp] Season ${prev.season} → ${env.currentSeason}: generated ${count} task(s)`,
+                );
+              }
+            }
             break;
           }
           case 'players': {

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import type { Database } from 'better-sqlite3';
 import { broadcast } from '../sseManager';
+import { generateTaskFromTemplateId } from '../../tasks/templateEngine';
 
 const VALID_STATUSES = ['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED'];
 const VALID_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH'];
@@ -82,6 +83,85 @@ export function createTasksRouter(db: Database): Router {
     res.status(201).json(task);
   });
 
+  // 6.6 — GET /api/tasks/templates
+  router.get('/templates', (_req, res) => {
+    const rows = db
+      .prepare(`SELECT * FROM recurring_task_templates ORDER BY id`)
+      .all() as Record<string, unknown>[];
+    res.json(rows);
+  });
+
+  // 6.6 — POST /api/tasks/templates
+  router.post('/templates', (req, res) => {
+    const { farmId, title, description, category, priority, triggerType, triggerValue } =
+      req.body as Record<string, unknown>;
+
+    if (!title || typeof title !== 'string' || title.trim() === '') {
+      res.status(400).json({ error: 'title is required' });
+      return;
+    }
+
+    const result = db
+      .prepare(
+        `INSERT INTO recurring_task_templates (farm_id, title, description, category, priority, trigger_type, trigger_value)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(
+        farmId ?? null,
+        title.trim(),
+        description ?? null,
+        category ?? null,
+        VALID_PRIORITIES.includes((priority as string)?.toUpperCase())
+          ? (priority as string).toUpperCase()
+          : 'MEDIUM',
+        triggerType ?? null,
+        triggerValue ? JSON.stringify(triggerValue) : null,
+      );
+
+    const template = db
+      .prepare(`SELECT * FROM recurring_task_templates WHERE id = ?`)
+      .get(result.lastInsertRowid) as Record<string, unknown>;
+
+    res.status(201).json(template);
+  });
+
+  // 6.6 — DELETE /api/tasks/templates/:id
+  router.delete('/templates/:id', (req, res) => {
+    const templateId = parseInt(req.params.id, 10);
+
+    const existing = db
+      .prepare(`SELECT id FROM recurring_task_templates WHERE id = ?`)
+      .get(templateId);
+    if (!existing) {
+      res.status(404).json({ error: 'Template not found' });
+      return;
+    }
+
+    db.prepare(`DELETE FROM recurring_task_templates WHERE id = ?`).run(templateId);
+    res.status(204).send();
+  });
+
+  // 6.6 — POST /api/tasks/templates/:id/generate (manual trigger)
+  router.post('/templates/:id/generate', (req, res) => {
+    const templateId = parseInt(req.params.id, 10);
+    const context = (req.body as Record<string, unknown>) ?? {};
+
+    const template = db
+      .prepare(`SELECT * FROM recurring_task_templates WHERE id = ?`)
+      .get(templateId);
+    if (!template) {
+      res.status(404).json({ error: 'Template not found' });
+      return;
+    }
+
+    const count = generateTaskFromTemplateId(templateId, context, db);
+    const latestTask = db
+      .prepare(`SELECT * FROM tasks ORDER BY id DESC LIMIT 1`)
+      .get() as Record<string, unknown>;
+
+    res.json({ generated: count, task: count > 0 ? latestTask : null });
+  });
+
   // 5.19 — PATCH /api/tasks/:id/claim
   router.patch('/:id/claim', (req, res) => {
     const taskId = parseInt(req.params.id, 10);
@@ -120,6 +200,38 @@ export function createTasksRouter(db: Database): Router {
       .prepare(`SELECT * FROM tasks WHERE id = ?`)
       .get(taskId) as Record<string, unknown>;
     broadcast('task-update', { action: 'claimed', task: updated, claimedBy: playerNickname });
+    res.json(updated);
+  });
+
+  // 6.2 — PATCH /api/tasks/:id/unclaim
+  router.patch('/:id/unclaim', (req, res) => {
+    const taskId = parseInt(req.params.id, 10);
+
+    const task = db.prepare(`SELECT * FROM tasks WHERE id = ?`).get(taskId) as
+      | Record<string, unknown>
+      | undefined;
+    if (!task) {
+      res.status(404).json({ error: 'Task not found' });
+      return;
+    }
+
+    const claim = db
+      .prepare(`SELECT * FROM task_claims WHERE task_id = ?`)
+      .get(taskId) as Record<string, unknown> | undefined;
+    if (!claim) {
+      res.status(400).json({ error: 'Task is not claimed' });
+      return;
+    }
+
+    db.prepare(`DELETE FROM task_claims WHERE task_id = ?`).run(taskId);
+    db.prepare(`UPDATE tasks SET status = 'OPEN' WHERE id = ? AND status = 'IN_PROGRESS'`).run(
+      taskId,
+    );
+
+    const updated = db
+      .prepare(`SELECT * FROM tasks WHERE id = ?`)
+      .get(taskId) as Record<string, unknown>;
+    broadcast('task-update', { action: 'unclaimed', task: updated });
     res.json(updated);
   });
 
