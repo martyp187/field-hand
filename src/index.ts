@@ -126,7 +126,7 @@ async function bootstrap(): Promise<void> {
   if (fs.existsSync(CLIENT_DIST)) {
     app.use(express.static(CLIENT_DIST));
     // SPA fallback — send index.html for any non-API route
-    app.get('*', (_req, res) => {
+    app.get('/{*splat}', (_req, res) => {
       res.sendFile(path.join(CLIENT_DIST, 'index.html'));
     });
   }

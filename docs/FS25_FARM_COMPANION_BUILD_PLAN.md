@@ -759,12 +759,13 @@ All prefixed with `/api/`
 ---
 
 ### Phase 9 — Task Board UI
-- ⬜ 9.1 — Server-wide task board (all farms, filterable)
-- ⬜ 9.2 — Farm-specific task board view
-- ⬜ 9.3 — Task creation form
-- ⬜ 9.4 — Claim / unclaim interaction
-- ⬜ 9.5 — Personal task list page (player enters their nickname)
-- ⬜ 9.6 — Server-wide goals progress panel
+- ✅ 9.1 — Server-wide task board (all farms, filterable by farm/status/category/search)
+- ✅ 9.2 — Farm-specific task board view (farm filter on task board + kanban/table view toggle)
+- ✅ 9.3 — Task creation form (dialog: title, description, category, priority, farm, due date)
+- ✅ 9.4 — Claim / unclaim interaction (claim uses stored nickname; unclaim restricted to claimer)
+- ✅ 9.5 — Personal task list page (My Tasks — pre-filtered by stored nickname via /api/players/:nickname/tasks)
+- ✅ 9.6 — Server-wide goals progress panel (Goals page: tabs ACTIVE/COMPLETED/CANCELLED, progress bars, create/update/status dialogs)
+- ✅ 9.7 — Task Templates page (table with trigger type, config display, Generate Now + Delete; create dialog with FUEL_LOW dynamic config fields)
 
 ---
 
@@ -804,7 +805,7 @@ All prefixed with `/api/`
 
 ## 13. Current Status
 
-**Phase:** 8 complete — beginning Phase 9 (Task Board UI)  
+**Phase:** 9 complete — beginning Phase 10 (Planning Tools)  
 **Last updated:** 2026-04-23  
 **Game version at time of analysis:** 1.18.0.0  
 **Save created:** 2026-04-21  
