@@ -3,8 +3,10 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { WelcomeDialog } from '@/components/WelcomeDialog';
 import { SettingsDialog } from '@/components/SettingsDialog';
+import { NotificationPanel } from '@/components/NotificationPanel';
 import { Toaster } from '@/components/ui/sonner';
 import { useSseEvents } from '@/hooks/useSseEvents';
+import { useNotifications } from '@/api/hooks/useNotifications';
 import { ServerOverview } from '@/pages/ServerOverview';
 import { FarmDashboard } from '@/pages/FarmDashboard';
 import { TaskBoard } from '@/pages/TaskBoard';
@@ -42,10 +44,17 @@ class RouteErrorBoundary extends Component<{ children: ReactNode }, { error: Err
 function AppShell() {
   const sseStatus = useSseEvents();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const { unreadCount } = useNotifications();
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar sseStatus={sseStatus} onSettingsClick={() => setSettingsOpen(true)} />
+      <Sidebar
+        sseStatus={sseStatus}
+        onSettingsClick={() => setSettingsOpen(true)}
+        onNotificationsClick={() => setNotificationsOpen(true)}
+        notificationCount={unreadCount}
+      />
       <main className="flex-1 overflow-y-auto">
         <RouteErrorBoundary>
         <Routes>
@@ -67,6 +76,7 @@ function AppShell() {
       </main>
       <WelcomeDialog />
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <NotificationPanel open={notificationsOpen} onClose={() => setNotificationsOpen(false)} />
       <Toaster richColors position="bottom-right" />
     </div>
   );

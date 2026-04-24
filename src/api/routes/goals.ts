@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import type { Database } from 'better-sqlite3';
 import { broadcast } from '../sseManager';
+import { createAlert } from '../../notifications/alertManager';
 
 const VALID_STATUSES = ['ACTIVE', 'COMPLETED', 'CANCELLED'];
 
@@ -66,6 +67,7 @@ export function createGoalsRouter(db: Database): Router {
 
     const now = new Date().toISOString();
     const targetValue = goal.target_value as number | null;
+    const prevValue = goal.current_value as number;
     const isNowComplete = targetValue !== null && currentValue >= targetValue;
     const newStatus = isNowComplete ? 'COMPLETED' : (goal.status as string);
     const completedAt = isNowComplete && !goal.completed_at ? now : (goal.completed_at ?? null);
@@ -77,6 +79,21 @@ export function createGoalsRouter(db: Database): Router {
     const updated = db
       .prepare(`SELECT * FROM server_goals WHERE id = ?`)
       .get(goalId) as Record<string, unknown>;
+
+    // 11.5 — Goal milestone alerts (25 / 50 / 75 / 100 %)
+    if (targetValue !== null && targetValue > 0) {
+      for (const pct of [25, 50, 75, 100]) {
+        const threshold = targetValue * (pct / 100);
+        if (prevValue < threshold && currentValue >= threshold) {
+          createAlert(db, 'goal_milestone', `Goal ${pct === 100 ? 'completed' : `${pct}% reached`}: ${goal.title as string}`, {
+            body: pct === 100
+              ? `"${goal.title as string}" is complete!`
+              : `Progress: ${currentValue} / ${targetValue} ${(goal.unit as string) ?? ''}.`,
+            dedup_key: `goal_milestone:${goalId}:${pct}`,
+          });
+        }
+      }
+    }
 
     broadcast('goal-update', { action: isNowComplete ? 'completed' : 'progress', goal: updated });
     res.json(updated);

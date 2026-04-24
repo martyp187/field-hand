@@ -781,16 +781,16 @@ All prefixed with `/api/`
 ---
 
 ### Phase 11 — Notifications & Alerts
-- ⬜ 11.1 — In-app notification centre (alert feed)
-- ⬜ 11.2 — Browser push notification setup (service worker)
-- ⬜ 11.3 — Alert: task due date approaching or overdue
-- ⬜ 11.4 — Alert: task claimed or completed by another player
-- ⬜ 11.5 — Alert: server-wide goal milestone reached
-- ⬜ 11.6 — Alert: vehicle fuel critically low (from fill level data)
-- ⬜ 11.7 — Alert: in-game season changing (from environment.xml forecast)
-- ⬜ 11.8 — Alert: new farmland acquired by any farm
-- ⬜ 11.9 — Alert: livestock feed runway below threshold
-- ⬜ 11.10 — Notification preferences per player (stored by nickname)
+- ✅ 11.1 — In-app notification centre (alert feed)
+- ⬜ 11.2 — Browser push notification setup (service worker) — deferred (requires HTTPS)
+- ✅ 11.3 — Alert: task due date approaching or overdue
+- ✅ 11.4 — Alert: task claimed or completed by another player
+- ✅ 11.5 — Alert: server-wide goal milestone reached
+- ✅ 11.6 — Alert: vehicle fuel critically low (from fill level data)
+- ✅ 11.7 — Alert: in-game season changing (from environment.xml forecast)
+- ✅ 11.8 — Alert: new farmland acquired by any farm
+- ⬜ 11.9 — Alert: livestock feed runway below threshold — deferred (no real livestock data available)
+- ✅ 11.10 — Notification preferences per player (dismiss-state in localStorage)
 
 ---
 
@@ -805,7 +805,7 @@ All prefixed with `/api/`
 
 ## 13. Current Status
 
-**Phase:** 10 complete — beginning Phase 11 (Notifications & Alerts)  
+**Phase:** 11 complete — beginning Phase 12 (Leaderboard & Polish)  
 **Last updated:** 2026-04-23  
 **Game version at time of analysis:** 1.18.0.0  
 **Save created:** 2026-04-21  

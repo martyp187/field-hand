@@ -2,6 +2,7 @@ import { Router } from 'express';
 import type { Database } from 'better-sqlite3';
 import { broadcast } from '../sseManager';
 import { generateTaskFromTemplateId } from '../../tasks/templateEngine';
+import { createAlert } from '../../notifications/alertManager';
 
 const VALID_STATUSES = ['OPEN', 'IN_PROGRESS', 'DONE', 'CANCELLED'];
 const VALID_PRIORITIES = ['LOW', 'MEDIUM', 'HIGH'];
@@ -200,6 +201,12 @@ export function createTasksRouter(db: Database): Router {
       .prepare(`SELECT * FROM tasks WHERE id = ?`)
       .get(taskId) as Record<string, unknown>;
     broadcast('task-update', { action: 'claimed', task: updated, claimedBy: playerNickname });
+    // 11.4 — Alert other players that this task was claimed
+    createAlert(db, 'task_claimed', `${playerNickname} claimed: ${task.title as string}`, {
+      body: task.description ? String(task.description) : undefined,
+      data: { task_id: taskId, nickname: playerNickname },
+      dedup_key: `task_claimed:${taskId}:${playerNickname}`,
+    });
     res.json(updated);
   });
 
@@ -266,6 +273,13 @@ export function createTasksRouter(db: Database): Router {
       .prepare(`SELECT * FROM tasks WHERE id = ?`)
       .get(taskId) as Record<string, unknown>;
     broadcast('task-update', { action: 'status_changed', task: updated });
+    // 11.4 — Alert when a task is completed
+    if (newStatus === 'DONE') {
+      createAlert(db, 'task_completed', `Completed: ${task.title as string}`, {
+        data: { task_id: taskId },
+        dedup_key: `task_completed:${taskId}`,
+      });
+    }
     res.json(updated);
   });
 

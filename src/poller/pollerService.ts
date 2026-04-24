@@ -30,7 +30,9 @@ import {
   validateVehicles,
 } from './validators';
 import { generateTasksFromTrigger, generateTaskFromTemplateId } from '../tasks/templateEngine';
+import { createAlert } from '../notifications/alertManager';
 import type { VehicleFull } from '../types/vehicles';
+import type { FarmlandEntry } from '../types/stats';
 import fs from 'fs';
 import path from 'path';
 
@@ -184,12 +186,16 @@ export class PollerService {
     validateVehicles(vehicles, this.db);
 
     writeServerSnapshot(stats, this.db);
+    // Check farmland ownership changes BEFORE writing the new state
+    this.checkFarmlandChanges(stats.farmlands);
     writeFarmlands(stats.farmlands, this.db);
     writeVehicles(vehicles, this.db);
     writeEconomy(economy, this.db);
 
     // 6.7 — Auto-task trigger: fuel below threshold
     this.checkFuelLevels(vehicles.vehicles);
+    // 11.3 — Task due date alerts
+    this.checkTasksDue();
 
     updatePollerHealth('http', true, undefined, this.db);
     broadcast('server-update', {
@@ -231,7 +237,7 @@ export class PollerService {
           if (fill.type.toUpperCase() !== fuelType) continue;
           if (fill.level >= (cfg.thresholdLiters ?? 50)) continue;
 
-          generateTaskFromTemplateId(
+          const generated = generateTaskFromTemplateId(
             tpl.id,
             {
               vehicleName: v.name,
@@ -242,8 +248,77 @@ export class PollerService {
             this.db,
             true, // respect cooldown
           );
+
+          // 11.6 — Fuel low alert (one per vehicle+fuelType per hour)
+          if (generated) {
+            const hourSlot = new Date().toISOString().substring(0, 13);
+            createAlert(
+              this.db,
+              'fuel_low',
+              `Low ${fill.type.toLowerCase()} in ${v.name ?? 'vehicle'}`,
+              {
+                body: `${fill.level.toFixed(0)} L remaining — refuel soon.`,
+                data: { vehicleId: v.uniqueId, fuelType: fill.type, level: fill.level },
+                dedup_key: `fuel_low:${v.uniqueId}:${fill.type}:${hourSlot}`,
+              },
+            );
+          }
         }
       }
+    }
+  }
+
+  // 11.3 — Check tasks with due dates approaching or overdue.
+  private checkTasksDue(): void {
+    const now = new Date();
+    const in24h = new Date(now.getTime() + 24 * 3600 * 1000).toISOString();
+    const tasks = this.db
+      .prepare(
+        `SELECT id, title, due_date FROM tasks
+         WHERE status IN ('OPEN', 'IN_PROGRESS')
+           AND due_date IS NOT NULL
+           AND due_date <= ?`,
+      )
+      .all(in24h) as Array<{ id: number; title: string; due_date: string }>;
+
+    for (const task of tasks) {
+      const dueDate = new Date(task.due_date);
+      const isOverdue = dueDate < now;
+      const todaySlot = now.toISOString().substring(0, 10);
+      createAlert(
+        this.db,
+        isOverdue ? 'task_overdue' : 'task_due',
+        isOverdue ? `Overdue: ${task.title}` : `Due soon: ${task.title}`,
+        {
+          body: isOverdue
+            ? `Due date was ${task.due_date.substring(0, 10)}.`
+            : `Due on ${task.due_date.substring(0, 10)}.`,
+          data: { task_id: task.id },
+          dedup_key: `task_due:${task.id}:${todaySlot}`,
+        },
+      );
+    }
+  }
+
+  // 11.8 — Detect when a farmland changes ownership.
+  private checkFarmlandChanges(incoming: FarmlandEntry[]): void {
+    for (const fl of incoming) {
+      if (fl.ownerFarmId === 0) continue;
+      const prev = this.db
+        .prepare(`SELECT owner_farm_id FROM farmlands WHERE farmland_id = ?`)
+        .get(fl.id) as { owner_farm_id: number } | undefined;
+      if (!prev || prev.owner_farm_id === fl.ownerFarmId) continue;
+
+      const farmRow = this.db
+        .prepare(`SELECT name FROM farms WHERE farm_id = ?`)
+        .get(fl.ownerFarmId) as { name: string } | undefined;
+      const farmName = farmRow?.name ?? `Farm ${fl.ownerFarmId}`;
+      const parcelLabel = fl.name ?? `Parcel #${fl.id}`;
+      createAlert(this.db, 'farmland_acquired', `${farmName} acquired ${parcelLabel}`, {
+        body: `${fl.areaHa.toFixed(1)} ha — $${fl.price.toLocaleString()}`,
+        farm_id: fl.ownerFarmId,
+        dedup_key: `farmland_acquired:${fl.id}:${fl.ownerFarmId}`,
+      });
     }
   }
 
@@ -284,6 +359,12 @@ export class PollerService {
                   `[poller/ftp] Season ${prev.season} → ${env.currentSeason}: generated ${count} task(s)`,
                 );
               }
+              // 11.7 — Season change alert
+              const season = env.currentSeason.charAt(0).toUpperCase() + env.currentSeason.slice(1).toLowerCase();
+              createAlert(this.db, 'season_change', `Season changed to ${season}`, {
+                body: `The in-game season has changed from ${prev.season.toLowerCase()} to ${env.currentSeason.toLowerCase()}.`,
+                dedup_key: `season_change:${env.currentSeason}:${env.currentDay ?? ''}`,
+              });
             }
             break;
           }

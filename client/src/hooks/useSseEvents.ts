@@ -59,6 +59,16 @@ export function useSseEvents(): SseStatus {
           // ignore malformed SSE
         }
       });
+
+      es.addEventListener('notification', (e: MessageEvent) => {
+        void qc.invalidateQueries({ queryKey: ['notifications'] });
+        try {
+          const data = JSON.parse(e.data) as { title: string; body?: string | null };
+          toast.info(data.title, { description: data.body ?? undefined });
+        } catch {
+          // ignore malformed SSE
+        }
+      });
     };
 
     connect();

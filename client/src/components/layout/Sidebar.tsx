@@ -13,9 +13,11 @@ import type { SseStatus } from '@/hooks/useSseEvents';
 interface SidebarProps {
   sseStatus: SseStatus;
   onSettingsClick: () => void;
+  onNotificationsClick: () => void;
+  notificationCount: number;
 }
 
-export function Sidebar({ sseStatus, onSettingsClick }: SidebarProps) {
+export function Sidebar({ sseStatus, onSettingsClick, onNotificationsClick, notificationCount }: SidebarProps) {
   const { nickname } = usePlayer();
   const { activeFarm, activeFarmId } = useFarm();
 
@@ -86,7 +88,7 @@ export function Sidebar({ sseStatus, onSettingsClick }: SidebarProps) {
 
       <Separator />
 
-      {/* Bottom: nickname + settings */}
+      {/* Bottom: nickname + actions */}
       <div className="flex items-center justify-between px-4 py-3">
         {nickname ? (
           <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -96,13 +98,27 @@ export function Sidebar({ sseStatus, onSettingsClick }: SidebarProps) {
         ) : (
           <span className="text-xs text-muted-foreground">Not set</span>
         )}
-        <button
-          onClick={onSettingsClick}
-          className="text-muted-foreground hover:text-foreground transition-colors text-sm"
-          title="Settings"
-        >
-          ⚙
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onNotificationsClick}
+            className="relative text-muted-foreground hover:text-foreground transition-colors text-sm"
+            title="Notifications"
+          >
+            🔔
+            {notificationCount > 0 && (
+              <span className="absolute -top-1 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-destructive text-[8px] font-bold text-white leading-none">
+                {notificationCount > 9 ? '9+' : notificationCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={onSettingsClick}
+            className="text-muted-foreground hover:text-foreground transition-colors text-sm"
+            title="Settings"
+          >
+            ⚙
+          </button>
+        </div>
       </div>
 
       {/* All farms list (quick access when no active farm) */}
