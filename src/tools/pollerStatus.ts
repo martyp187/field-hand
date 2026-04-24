@@ -50,7 +50,7 @@ function main() {
     .all() as AlertRow[];
 
   console.log('\n' + '─'.repeat(80));
-  console.log('  FS25 Farm Companion — Poller Status');
+  console.log('  FS25 Field Hand — Poller Status');
   console.log('─'.repeat(80));
 
   if (health.length === 0) {

@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, apiMutate } from '@/api/client';
+import { formatMoney } from '@/lib/formatters';
 
 export interface ServerSnapshot {
   server_name: string | null;
@@ -66,6 +67,16 @@ export function useSettings() {
     queryKey: ['settings'],
     queryFn: () => apiFetch<Record<string, string>>('/api/settings'),
   });
+}
+
+export function useCurrencySymbol(): string {
+  const { data: settings } = useSettings();
+  return settings?.currencySymbol ?? '£';
+}
+
+export function useFormatMoney(): (value: number) => string {
+  const symbol = useCurrencySymbol();
+  return (value: number) => formatMoney(value, symbol);
 }
 
 export function useUpdateSetting() {

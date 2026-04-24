@@ -13,8 +13,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useEconomyPrices } from '@/api/hooks/useEconomy';
-import { useServerStatus } from '@/api/hooks/useServer';
-import { formatMoney } from '@/lib/formatters';
+import { useServerStatus, useFormatMoney, useCurrencySymbol } from '@/api/hooks/useServer';
 import { cn } from '@/lib/utils';
 
 const PERIOD_ORDER = [
@@ -53,6 +52,8 @@ function CustomDot(props: Record<string, unknown>) {
 export function MarketPrices() {
   const { data: prices, isLoading } = useEconomyPrices();
   const { data: serverStatus } = useServerStatus();
+  const fmt = useFormatMoney();
+  const currencySymbol = useCurrencySymbol();
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<string | null>(null);
 
@@ -155,7 +156,7 @@ export function MarketPrices() {
                     <CardTitle className="text-base font-mono">{activeFillType}</CardTitle>
                     {bestPeriod && (
                       <Badge variant="outline" className="text-xs border-positive text-positive">
-                        Best: {bestPeriod.replace(/_/g, ' ')} — {formatMoney(maxPrice)}/unit
+                        Best: {bestPeriod.replace(/_/g, ' ')} — {fmt(maxPrice)}/unit
                       </Badge>
                     )}
                   </div>
@@ -164,9 +165,9 @@ export function MarketPrices() {
                   <ResponsiveContainer width="100%" height={220}>
                     <LineChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
                       <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `$${v}`} width={65} />
+                      <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${currencySymbol}${v}`} width={65} />
                       <Tooltip
-                        formatter={(value) => [formatMoney(Number(value)), 'Price']}
+                        formatter={(value) => [fmt(Number(value)), 'Price']}
                         labelFormatter={(label) => {
                           const entry = chartData.find((d) => d.label === label);
                           return entry?.period.replace(/_/g, ' ') ?? label;
@@ -223,7 +224,7 @@ export function MarketPrices() {
                         >
                           <td className="py-1.5 px-3 text-xs">{row.period.replace(/_/g, ' ')}</td>
                           <td className="py-1.5 px-3 text-xs text-right font-mono">
-                            {formatMoney(row.price)}
+                            {fmt(row.price)}
                           </td>
                           <td className="py-1.5 px-3 text-xs">
                             <div className="flex gap-1">

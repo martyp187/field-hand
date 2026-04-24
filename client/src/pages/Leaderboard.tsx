@@ -4,7 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FarmColourDot } from '@/components/FarmColourDot';
-import { formatHa, formatMoney } from '@/lib/formatters';
+import { formatHa } from '@/lib/formatters';
+import { useFormatMoney } from '@/api/hooks/useServer';
 import {
   BarChart,
   Bar,
@@ -142,6 +143,7 @@ function LoadingSkeleton() {
 
 export function Leaderboard() {
   const { data, isLoading, isError } = useLeaderboard();
+  const fmt = useFormatMoney();
 
   return (
     <div className="p-6 space-y-4">
@@ -192,8 +194,8 @@ export function Leaderboard() {
                   barKey="money"
                   nameKey="name"
                   colourKey="colour_hex"
-                  formatValue={(v) => formatMoney(v)}
-                  formatTooltip={(v) => formatMoney(v)}
+                  formatValue={(v) => fmt(v)}
+                  formatTooltip={(v) => fmt(v)}
                   rank={(row, i) => ({ label: row.name as string, value: row.money as number })}
                 />
               )}

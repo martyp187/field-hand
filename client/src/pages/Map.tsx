@@ -4,7 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useFarmlands, useFarms } from '@/api/hooks/useFarms';
-import { formatHa, formatMoney } from '@/lib/formatters';
+import { formatHa } from '@/lib/formatters';
+import { useFormatMoney } from '@/api/hooks/useServer';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/api/client';
 
@@ -41,6 +42,7 @@ interface DragAnchor {
 export function MapPage() {
   const { data: farmlands = [], isLoading: farmlandsLoading } = useFarmlands();
   const { data: farms = [], isLoading: farmsLoading } = useFarms();
+  const fmt = useFormatMoney();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -320,7 +322,7 @@ export function MapPage() {
                     </p>
                   )}
                   {tooltip.area != null && <p className="text-muted-foreground">{formatHa(tooltip.area)}</p>}
-                  {tooltip.price != null && <p className="text-muted-foreground">{formatMoney(tooltip.price)}</p>}
+                  {tooltip.price != null && <p className="text-muted-foreground">{fmt(tooltip.price)}</p>}
                 </div>
               )}
 

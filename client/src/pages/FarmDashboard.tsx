@@ -17,7 +17,8 @@ import {
   type Vehicle,
   type Farmland,
 } from '@/api/hooks/useFarms';
-import { formatMoney, formatHa, formatHours, formatRelativeTime } from '@/lib/formatters';
+import { formatHa, formatHours, formatRelativeTime } from '@/lib/formatters';
+import { useFormatMoney, useCurrencySymbol } from '@/api/hooks/useServer';
 import {
   BarChart,
   Bar,
@@ -67,6 +68,7 @@ function OverviewTab({ farmId }: { farmId: number }) {
   const { data: vehicles = [] } = useFarmVehicles(farmId);
   const { data: fields = [] } = useFarmFields(farmId);
   const { data: stats = [] } = useFarmStatistics(farmId);
+  const fmt = useFormatMoney();
 
   const latestStats = stats[0] ?? null;
   const totalHa = (fields as Farmland[]).reduce((sum, f) => sum + (f.area_ha ?? 0), 0);
@@ -94,7 +96,7 @@ function OverviewTab({ farmId }: { farmId: number }) {
             <p
               className={`text-3xl font-bold ${farm.money >= 0 ? 'text-positive' : 'text-destructive'}`}
             >
-              {formatMoney(farm.money)}
+              {fmt(farm.money)}
             </p>
           </CardContent>
         </Card>
@@ -106,7 +108,7 @@ function OverviewTab({ farmId }: { farmId: number }) {
           </CardHeader>
           <CardContent className="space-y-2">
             <p className={`text-2xl font-semibold ${farm.loan > 0 ? 'text-destructive' : 'text-positive'}`}>
-              {formatMoney(farm.loan)}
+              {fmt(farm.loan)}
             </p>
             <Progress value={loanPct} className="h-2" />
             <p className="text-xs text-muted-foreground">{loanPct.toFixed(0)}% of max loan</p>
@@ -186,6 +188,8 @@ function OverviewTab({ farmId }: { farmId: number }) {
 
 function FinancesTab({ farmId }: { farmId: number }) {
   const { data: finances = [], isLoading } = useFarmFinances(farmId);
+  const fmt = useFormatMoney();
+  const currencySymbol = useCurrencySymbol();
   const sorted = [...finances].sort((a, b) => a.in_game_day - b.in_game_day);
 
   const chartData = sorted.map((s) => ({
@@ -210,9 +214,9 @@ function FinancesTab({ farmId }: { farmId: number }) {
             <BarChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" />
               <XAxis dataKey="day" tick={{ fontSize: 11, fill: '#a1a1aa' }} />
-              <YAxis tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: '#a1a1aa' }} />
+              <YAxis tickFormatter={(v) => `${currencySymbol}${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: '#a1a1aa' }} />
               <Tooltip
-                formatter={(value) => formatMoney(Number(value))}
+                formatter={(value) => fmt(Number(value))}
                 contentStyle={{ background: '#18181b', border: '1px solid #3f3f46', borderRadius: 6 }}
                 labelStyle={{ color: '#a1a1aa' }}
               />
@@ -251,22 +255,22 @@ function FinancesTab({ farmId }: { farmId: number }) {
                 return (
                   <tr key={s.id} className="border-b border-border/40 hover:bg-muted/20">
                     <td className="py-2 pr-4 font-mono text-xs text-muted-foreground">D{s.in_game_day}</td>
-                    <td className="py-2 pr-4 text-right text-positive">{formatMoney(s.harvest_income ?? 0)}</td>
-                    <td className="py-2 pr-4 text-right text-positive">{formatMoney(s.mission_income ?? 0)}</td>
+                    <td className="py-2 pr-4 text-right text-positive">{fmt(s.harvest_income ?? 0)}</td>
+                    <td className="py-2 pr-4 text-right text-positive">{fmt(s.mission_income ?? 0)}</td>
                     <td className="py-2 pr-4 text-right text-positive">
-                      {formatMoney((s.sold_milk ?? 0) + (s.sold_wool ?? 0) + (s.sold_animals ?? 0))}
+                      {fmt((s.sold_milk ?? 0) + (s.sold_wool ?? 0) + (s.sold_animals ?? 0))}
                     </td>
                     <td className="py-2 pr-4 text-right text-positive">
-                      {formatMoney((s.sold_products ?? 0) + (s.sold_bales ?? 0) + (s.sold_wood ?? 0) + (s.income_bga ?? 0))}
+                      {fmt((s.sold_products ?? 0) + (s.sold_bales ?? 0) + (s.sold_wood ?? 0) + (s.income_bga ?? 0))}
                     </td>
                     <td className="py-2 pr-4 text-right text-destructive">
-                      {formatMoney((s.new_vehicles_cost ?? 0) + (s.vehicle_running_cost ?? 0) + (s.purchase_fuel ?? 0))}
+                      {fmt((s.new_vehicles_cost ?? 0) + (s.vehicle_running_cost ?? 0) + (s.purchase_fuel ?? 0))}
                     </td>
                     <td className="py-2 pr-4 text-right text-destructive">
-                      {formatMoney((s.purchase_seeds ?? 0) + (s.purchase_fertilizer ?? 0) + (s.loan_interest ?? 0) + (s.production_costs ?? 0) + (s.construction_cost ?? 0) + (s.wage_payment ?? 0) + (s.field_purchase ?? 0))}
+                      {fmt((s.purchase_seeds ?? 0) + (s.purchase_fertilizer ?? 0) + (s.loan_interest ?? 0) + (s.production_costs ?? 0) + (s.construction_cost ?? 0) + (s.wage_payment ?? 0) + (s.field_purchase ?? 0))}
                     </td>
                     <td className={`py-2 text-right font-semibold ${net >= 0 ? 'text-positive' : 'text-destructive'}`}>
-                      {formatMoney(net)}
+                      {fmt(net)}
                     </td>
                   </tr>
                 );
@@ -373,6 +377,7 @@ function VehiclesTab({ farmId }: { farmId: number }) {
 
 function FieldsTab({ farmId }: { farmId: number }) {
   const { data: fields = [], isLoading } = useFarmFields(farmId);
+  const fmt = useFormatMoney();
 
   if (isLoading) return <Skeleton className="h-48 w-full" />;
   if (fields.length === 0) {
@@ -405,7 +410,7 @@ function FieldsTab({ farmId }: { farmId: number }) {
                 <td className="py-2 pr-4">{f.name ?? `Parcel ${f.farmland_id}`}</td>
                 <td className="py-2 pr-4 text-right">{f.area_ha != null ? formatHa(f.area_ha) : '—'}</td>
                 <td className="py-2 text-right text-muted-foreground">
-                  {f.current_price != null ? formatMoney(f.current_price) : '—'}
+                  {f.current_price != null ? fmt(f.current_price) : '—'}
                 </td>
               </tr>
             ))}

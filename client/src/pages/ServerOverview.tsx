@@ -5,15 +5,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { WeatherIcon } from '@/components/WeatherIcon';
 import { FarmColourDot } from '@/components/FarmColourDot';
 import { PageError } from '@/components/ui/page-states';
-import { useServerStatus, useServerWeather } from '@/api/hooks/useServer';
+import { useServerStatus, useServerWeather, useFormatMoney } from '@/api/hooks/useServer';
 import { useFarms } from '@/api/hooks/useFarms';
-import { formatMoney, formatGameTime, formatRelativeTime } from '@/lib/formatters';
+import { formatGameTime, formatRelativeTime } from '@/lib/formatters';
 
 export function ServerOverview() {
   const { data: status, isLoading: statusLoading, isError: statusError, refetch } = useServerStatus();
   const { data: weather, isLoading: weatherLoading } = useServerWeather();
   const { data: farms = [], isLoading: farmsLoading } = useFarms();
   const navigate = useNavigate();
+  const fmt = useFormatMoney();
 
   const snap = status?.snapshot;
 
@@ -167,7 +168,7 @@ export function ServerOverview() {
                           farm.money >= 0 ? 'font-medium text-positive' : 'font-medium text-destructive'
                         }
                       >
-                        {formatMoney(farm.money)}
+                        {fmt(farm.money)}
                       </p>
                     </div>
                     {farm.player_count != null && (

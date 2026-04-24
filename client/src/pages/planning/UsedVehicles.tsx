@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMarketVehicles } from '@/api/hooks/useEconomy';
-import { formatMoney, formatHours, formatRelativeTime } from '@/lib/formatters';
+import { formatHours, formatRelativeTime } from '@/lib/formatters';
+import { useFormatMoney, useCurrencySymbol } from '@/api/hooks/useServer';
 import { cn } from '@/lib/utils';
 
 function vehicleDisplayName(filename: string): string {
@@ -55,6 +56,8 @@ function ConditionBar({ value, label }: { value: number | null; label: string })
 
 export function UsedVehicles() {
   const { data: vehicles = [], isLoading } = useMarketVehicles();
+  const fmt = useFormatMoney();
+  const currencySymbol = useCurrencySymbol();
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [search, setSearch] = useState('');
@@ -106,7 +109,7 @@ export function UsedVehicles() {
           <Input
             className="h-7 text-xs w-28"
             type="number"
-            placeholder="Min $"
+            placeholder={`Min ${currencySymbol}`}
             value={minPrice}
             onChange={(e) => setMinPrice(e.target.value)}
           />
@@ -114,7 +117,7 @@ export function UsedVehicles() {
           <Input
             className="h-7 text-xs w-28"
             type="number"
-            placeholder="Max $"
+            placeholder={`Max ${currencySymbol}`}
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
           />
@@ -151,7 +154,7 @@ export function UsedVehicles() {
                         )}
                       </td>
                       <td className="py-2.5 px-3 text-right font-mono text-sm">
-                        {v.price != null ? formatMoney(v.price) : '—'}
+                        {v.price != null ? fmt(v.price) : '—'}
                       </td>
                       <td className="py-2.5 px-3 space-y-1 w-40">
                         <ConditionBar value={v.damage} label="Damage" />

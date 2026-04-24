@@ -36,7 +36,7 @@ export function WelcomeDialog() {
       >
         <DialogHeader className="text-center items-center">
           <div className="text-4xl mb-2">🌾</div>
-          <DialogTitle className="text-xl">Farm Companion</DialogTitle>
+          <DialogTitle className="text-xl">Field Hand</DialogTitle>
           <DialogDescription className="text-center text-muted-foreground">
             Track your farm, claim tasks, and plan your season — all in one place.
           </DialogDescription>

@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(grep -rn '\\\\$\\\\|currency\\\\|money\\\\|toLocaleString\\\\|formatMoney\\\\|formatCurrency' /home/marty/field-hand/client/src --include=\"*.ts\" --include=\"*.tsx\")",
+      "Bash(grep -rn 'formatMoney\\\\|\\\\${\\\\|toLocaleString\\\\|\"currency\"\\\\|currencySymbol\\\\|\\\\$[0-9]\\\\|\\\\$ ' /home/marty/field-hand/client/src --include=\"*.ts\" --include=\"*.tsx\")",
+      "Bash(grep -rn '\"\\\\$\\\\|`\\\\$\\\\|\\\\${\\\\|toLocaleString' /home/marty/field-hand/src --include=\"*.ts\")",
+      "Bash(grep -n \"formatMoney\\\\|\\\\`\\\\$\\\\$\\\\|Min \\\\$\\\\|Max \\\\$\" /home/marty/field-hand/client/src/pages/FarmDashboard.tsx)",
+      "Bash(grep -n \"formatMoney\\\\|\\\\`\\\\$\\\\$\\\\|Min \\\\$\\\\|Max \\\\$\" /home/marty/field-hand/client/src/pages/planning/MarketPrices.tsx /home/marty/field-hand/client/src/pages/planning/UsedVehicles.tsx)",
+      "Bash(grep -rn '`\\\\$\\\\${' /home/marty/field-hand/client/src --include=\"*.tsx\" --include=\"*.ts\")",
+      "Bash(node -e \"const db = require\\('better-sqlite3'\\)\\('./data/fs25companion.db'\\); const farms = db.prepare\\('SELECT farm_id, name, money, loan, last_updated FROM farms'\\).all\\(\\); console.log\\(JSON.stringify\\(farms, null, 2\\)\\);\")"
     ]
   }
 }

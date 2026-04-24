@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useEconomyPrices } from '@/api/hooks/useEconomy';
-import { formatMoney } from '@/lib/formatters';
+import { useFormatMoney } from '@/api/hooks/useServer';
 
 const PERIOD_ORDER = [
   'EARLY_SPRING', 'MID_SPRING', 'LATE_SPRING',
@@ -43,6 +43,7 @@ function ResultRow({ label, value, highlight }: { label: string; value: string; 
 
 export function ProfitCalc() {
   const { data: prices, isLoading } = useEconomyPrices();
+  const fmt = useFormatMoney();
 
   const cropOptions = prices
     ? Object.keys(prices)
@@ -176,7 +177,7 @@ export function ProfitCalc() {
                     const entry = periodPrices.find((e) => e.period === p);
                     return (
                       <SelectItem key={p} value={p}>
-                        {p.replace(/_/g, ' ')} — {entry ? formatMoney(entry.price) : '—'}/t
+                        {p.replace(/_/g, ' ')} — {entry ? fmt(entry.price) : '—'}/t
                       </SelectItem>
                     );
                   })}
@@ -239,23 +240,23 @@ export function ProfitCalc() {
           </CardHeader>
           <CardContent className="space-y-1">
             <ResultRow label="Total yield" value={`${totalYield.toFixed(1)} t`} />
-            <ResultRow label="Sell price" value={`${formatMoney(sellPrice)}/t`} />
-            <ResultRow label="Revenue" value={formatMoney(revenue)} />
-            <ResultRow label="Seed costs" value={`−${formatMoney(seedCostNum * areaNum)}`} />
-            <ResultRow label="Fertilizer costs" value={`−${formatMoney(fertCostNum * areaNum)}`} />
-            <ResultRow label="Total costs" value={`−${formatMoney(totalCosts)}`} />
+            <ResultRow label="Sell price" value={`${fmt(sellPrice)}/t`} />
+            <ResultRow label="Revenue" value={fmt(revenue)} />
+            <ResultRow label="Seed costs" value={`−${fmt(seedCostNum * areaNum)}`} />
+            <ResultRow label="Fertilizer costs" value={`−${fmt(fertCostNum * areaNum)}`} />
+            <ResultRow label="Total costs" value={`−${fmt(totalCosts)}`} />
             <div className={`flex justify-between items-center py-3 mt-2 rounded-md px-3 ${isGood ? 'bg-positive/10' : 'bg-destructive/10'}`}>
               <span className="text-sm font-semibold">Net profit</span>
               <span className={`text-lg font-bold font-mono ${isGood ? 'text-positive' : 'text-destructive'}`}>
-                {isGood ? '' : '−'}{formatMoney(Math.abs(profit))}
+                {isGood ? '' : '−'}{fmt(Math.abs(profit))}
               </span>
             </div>
-            <ResultRow label="Profit per ha" value={`${formatMoney(profitPerHa)}/ha`} />
+            <ResultRow label="Profit per ha" value={`${fmt(profitPerHa)}/ha`} />
 
             {sellPeriod !== '_best' && bestPeriodEntry.price > sellPrice && (
               <div className="mt-3 p-3 rounded-md bg-warning/10 text-warning text-xs">
                 <strong>Tip:</strong> Selling in {bestPeriodEntry.period.replace(/_/g, ' ')} instead
-                earns {formatMoney(bestProfit - profit)} more ({formatMoney(bestProfit)} total).
+                earns {fmt(bestProfit - profit)} more ({fmt(bestProfit)} total).
               </div>
             )}
           </CardContent>

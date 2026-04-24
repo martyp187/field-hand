@@ -31,7 +31,7 @@ function statusLine(src: string): string {
 }
 
 async function bootstrap(): Promise<void> {
-  console.log('[boot] FS25 Farm Companion starting…');
+  console.log('[boot] FS25 Field Hand starting…');
 
   // Step 3 — Init database schema + seed settings
   initSchema(db);
@@ -160,7 +160,7 @@ async function bootstrap(): Promise<void> {
   app.listen(APP_PORT, () => {
     // Step 12 — Startup summary
     console.log('\n' + '─'.repeat(50));
-    console.log('  FS25 Farm Companion — Startup Summary');
+    console.log('  FS25 Field Hand — Startup Summary');
     console.log('─'.repeat(50));
     console.log(statusLine('ftp_connect'));
     console.log(statusLine('careerSavegame'));

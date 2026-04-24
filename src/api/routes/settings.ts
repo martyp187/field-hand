@@ -6,6 +6,7 @@ const EDITABLE_KEYS = new Set([
   'httpPollIntervalSeconds',
   'ftpPollIntervalSeconds',
   'notificationsEnabled',
+  'currencySymbol',
 ]);
 
 export function createSettingsRouter(db: Database): Router {

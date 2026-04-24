@@ -77,7 +77,7 @@ function AppShell() {
           >
             ☰
           </button>
-          <span className="font-semibold text-sm">🌾 Farm Companion</span>
+          <span className="font-semibold text-sm">🌾 Field Hand</span>
           <button
             onClick={() => setNotificationsOpen(true)}
             className="relative text-muted-foreground hover:text-foreground text-base"

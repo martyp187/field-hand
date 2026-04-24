@@ -335,6 +335,7 @@ export function seedSettings(db: Database): void {
     ['ftpPollIntervalSeconds', '180'],
     ['ignoredFarmIds', '[2]'],
     ['mapImageUrl', 'null'],
+    ['currencySymbol', '£'],
     ['serverTimezone', 'UTC'],
     ['notificationsEnabled', 'true'],
     ['rawRetentionDays', '7'],

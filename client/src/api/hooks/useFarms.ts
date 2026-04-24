@@ -88,6 +88,7 @@ export function useFarm(id: number | null) {
     queryKey: ['farms', id],
     queryFn: () => apiFetch<FarmDetail>(`/api/farms/${id}`),
     enabled: id !== null,
+    refetchInterval: 60_000,
   });
 }
 

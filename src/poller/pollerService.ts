@@ -6,6 +6,7 @@ import { parseStats } from '../parser/statsParser';
 import { parseVehicles } from '../parser/vehiclesParser';
 import { parseEconomy } from '../parser/economyParser';
 import { parseFarms } from '../parser/farmsParser';
+import { parseElsLoans } from '../parser/elsLoansParser';
 import { parseFields } from '../parser/fieldsParser';
 import { parseEnvironment } from '../parser/environmentParser';
 import { parsePlayers } from '../parser/playersParser';
@@ -40,7 +41,8 @@ const config = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, '..', '..', 'config.json'), 'utf-8'),
 );
 const IGNORED_FARM_IDS: number[] = config.ignoredFarmIds ?? [2];
-const FTP_KEYS = ['farms', 'fields', 'environment', 'players', 'invoices', 'sales', 'precisionFarming'];
+const CURRENCY_SYMBOL: string = config.currencySymbol ?? '£';
+const FTP_KEYS = ['farms', 'fields', 'environment', 'players', 'invoices', 'sales', 'precisionFarming', 'elsLoans'];
 
 const FUEL_FILL_TYPES = new Set(['DIESEL', 'DEF', 'METHANE', 'ELECTRICCHARGE']);
 
@@ -337,7 +339,7 @@ export class PollerService {
       const farmName = farmRow?.name ?? `Farm ${fl.ownerFarmId}`;
       const parcelLabel = fl.name ?? `Parcel #${fl.id}`;
       createAlert(this.db, 'farmland_acquired', `${farmName} acquired ${parcelLabel}`, {
-        body: `${fl.areaHa.toFixed(1)} ha — $${fl.price.toLocaleString()}`,
+        body: `${fl.areaHa.toFixed(1)} ha — ${CURRENCY_SYMBOL}${fl.price.toLocaleString()}`,
         farm_id: fl.ownerFarmId,
         dedup_key: `farmland_acquired:${fl.id}:${fl.ownerFarmId}`,
       });
@@ -409,6 +411,13 @@ export class PollerService {
           }
           case 'precisionFarming': {
             writePrecisionFarming(await parsePrecisionFarming(content), this.db);
+            break;
+          }
+          case 'elsLoans': {
+            const updateLoan = this.db.prepare(`UPDATE farms SET loan = ? WHERE farm_id = ?`);
+            for (const s of await parseElsLoans(content)) {
+              updateLoan.run(s.totalLoan, s.farmId);
+            }
             break;
           }
         }

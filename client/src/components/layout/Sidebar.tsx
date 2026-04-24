@@ -35,7 +35,7 @@ export function Sidebar({ sseStatus, onSettingsClick, onNotificationsClick, noti
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
         <span className="text-xl">🌾</span>
-        <span className="font-semibold text-sm tracking-tight">Farm Companion</span>
+        <span className="font-semibold text-sm tracking-tight">Field Hand</span>
       </div>
 
       {/* Active farm + connection status */}

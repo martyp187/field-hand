@@ -12,6 +12,7 @@
       "careerSavegame":   "careerSavegame.xml",
       "vehicles":         "vehicles.xml",
       "economy":          "economy.xml",
+      "elsLoans":         "els_loans.xml",
       "farmland":         "farmland.xml",
       "items":            "items.xml"
     },
@@ -31,5 +32,6 @@
     "hourlyRetentionDays": 90
   },
   "ignoredFarmIds": [2],
+  "currencySymbol": "£",
   "mapImageUrl": "http://149.102.148.127:8590/feed/dedicated-server-stats-map.jpg?code=UJbUIL4Z1aMHgWZw&quality=80&size=2048"
 }

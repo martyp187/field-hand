@@ -1,7 +1,5 @@
-export function formatMoney(value: number): string {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
+export function formatMoney(value: number, symbol = '£'): string {
+  return symbol + new Intl.NumberFormat('en-GB', {
     maximumFractionDigits: 0,
   }).format(value);
 }
