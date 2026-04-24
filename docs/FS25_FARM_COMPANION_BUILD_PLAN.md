@@ -429,6 +429,25 @@ If an FTP or HTTP poll takes longer than the interval, a second cycle could star
 - Per-source lock flag — if a poll is already in progress, skip that cycle and log it
 - Never run two polls of the same source concurrently
 
+### Risk 13: New Savegame Started on the Same Server
+The game server may start a new save at any point — either deliberately (new season, new map, fresh run) or after a server wipe. Because the app uses persistent IDs (`farm_id`, `farmland_id`, `unique_id` for vehicles, etc.), a new save that reuses those IDs will produce a mix of old and new data in the database. This is a data-integrity risk, not just a display issue.
+
+**Specific failure modes without intervention:**
+
+| Table / data | What happens |
+|---|---|
+| `farm_finance_snapshots` UNIQUE(farm_id, in_game_day) | `INSERT OR REPLACE` overwrites day 1 of the old save with day 1 of the new save; all higher days from the old save persist silently, corrupting the finance chart |
+| `vehicles` | New save generates new UUIDs; old vehicle rows never match again and accumulate indefinitely |
+| `farmlands` / `fields` | If the map changes and IDs differ, stale rows from the old map persist alongside new data |
+| `tasks` / `server_goals` / `notifications` | Old-save records clutter the UI and may reference farm IDs that no longer exist |
+| Season-change detection | Compares new save's first season against the last-stored season from the old save — may fire a spurious season-change alert |
+| Farm balances / economy prices / sales market | Self-healing — all use `ON CONFLICT DO UPDATE SET`, so they overwrite correctly |
+
+**Mitigation — see Section 15 for full details:**
+- Automatic detection: the HTTP poller compares the incoming `mapName` from `stats.xml` against the last stored map name; if it changes, a `new_save_detected` notification is created and a `playthrough-reset-suggested` SSE event is broadcast. Note: `currentDay` in `environment.xml` does **not** reset on a new save and cannot be used as a detection signal.
+- Manual reset: `POST /api/admin/reset` runs a single SQLite transaction that deletes all 20 game-state tables while preserving `app_settings` and `recurring_task_templates`; also removes the cached map image so a new map image can be uploaded or fetched
+- UI entry point: Settings → "Reset for New Playthrough" — two-step confirmation with explicit list of what is and is not cleared
+
 ---
 
 ## 9. Testing Strategy
@@ -795,18 +814,18 @@ All prefixed with `/api/`
 ---
 
 ### Phase 12 — Leaderboard & Polish
-- ⬜ 12.1 — Leaderboard (largest land ha, highest portfolio value, most vehicle hours, most tasks completed)
-- ⬜ 12.2 — Mobile responsive audit and fixes
-- ⬜ 12.3 — Performance review (query optimisation, database index review)
-- ⬜ 12.4 — Error states and loading skeletons throughout UI
-- ⬜ 12.5 — Deployment: PM2 process management, Nginx reverse proxy, HTTPS via Let's Encrypt
+- ✅ 12.1 — Leaderboard (largest land ha, highest portfolio value, most vehicle hours, most tasks completed)
+- ✅ 12.2 — Mobile responsive audit and fixes (sidebar drawer + mobile top bar)
+- ✅ 12.3 — Performance review (13 database indexes added across all hot-path queries)
+- ✅ 12.4 — Error states and loading skeletons throughout UI (PageError component + wired into key pages)
+- ✅ 12.5 — Deployment: PM2 ecosystem.config.js + docs/nginx.conf.example (HTTPS + SSE proxy headers)
 
 ---
 
 ## 13. Current Status
 
-**Phase:** 11 complete — beginning Phase 12 (Leaderboard & Polish)  
-**Last updated:** 2026-04-23  
+**Phase:** 12 complete — all phases done; new-playthrough reset implemented (see Section 15)  
+**Last updated:** 2026-04-24  
 **Game version at time of analysis:** 1.18.0.0  
 **Save created:** 2026-04-21  
 
@@ -839,7 +858,88 @@ These fixtures prevent parser regressions when the live server is unavailable.
 
 ---
 
-## 15. Notes for Claude Code
+## 15. New Playthrough Handling
+
+### Background
+
+The app ingests game data using stable IDs (`farm_id`, `farmland_id`, vehicle `unique_id`, etc.) and stores it in a persistent SQLite database. When a new savegame is started on the same server — whether the map changes or not — those IDs reset or are reused. Without intervention the database would accumulate a mixture of old and new playthrough data, with no way to tell them apart.
+
+### Automatic Detection
+
+**Signal used: map name change** (from `mapName` in `stats.xml`, read via HTTP each poll cycle).
+
+FS25's `currentDay` field in `environment.xml` is a **continuous game-engine calendar** that does not reset when a new savegame is started. It was initially used as the detection signal but was found to be unreliable in practice — confirmed by observing that `current_day` remained at 19 after a map switch from Riverbend Springs to Saxlingham Farm Estate. Map name change is the correct and reliable signal.
+
+On every HTTP poll cycle, before writing the new `server_snapshot`, the poller reads the most recent non-empty `map_name` from the database and compares it to the incoming value from stats.xml. If they differ:
+
+1. A `new_save_detected` notification is inserted into the `notifications` table (deduped per new map name, so it fires exactly once per map transition).
+2. A `playthrough-reset-suggested` SSE event is broadcast to all connected browser clients.
+3. Every connected client shows a warning toast: *"New savegame detected — consider resetting in Settings."*
+4. The app continues polling normally — no data is deleted automatically.
+
+**Limitation: same-map new saves.** If a new savegame is started on the same map, no automatic detection will fire (the map name is unchanged and `currentDay` does not reset). In this case the admin must trigger the reset manually. Signs to watch for: all farm money returns to ~$1,000,000, farmland ownership resets to unowned, vehicle list changes significantly.
+
+### Manual Reset Process
+
+When a new playthrough is confirmed, an admin uses the reset function:
+
+**Via the UI:**
+1. Open Settings (⚙ icon in the sidebar footer)
+2. Scroll to **New playthrough** section
+3. Click **"Reset for New Playthrough…"**
+4. A red confirmation panel appears, listing exactly what will and will not be cleared
+5. Click **"Yes, wipe all game data"**
+6. `POST /api/admin/reset` is called
+7. The dialog closes; all connected clients receive a `playthrough-reset` SSE event and immediately flush their React Query caches, showing fresh empty state
+
+**Via the API directly (e.g. from a script):**
+```
+POST /api/admin/reset
+```
+Returns `{ ok: true, cleared: { <table>: <row_count>, … } }`.
+
+### What the Reset Clears
+
+The reset runs as a single SQLite transaction deleting rows from all game-state tables in dependency order:
+
+| Cleared | Preserved |
+|---|---|
+| notifications | app_settings |
+| data_quality_alerts | recurring_task_templates |
+| task_claims | |
+| tasks | |
+| server_goals | |
+| farmland_price_history | |
+| farmland_precision_stats | |
+| farm_players | |
+| farm_statistics_snapshots | |
+| farm_finance_snapshots | |
+| invoices | |
+| sales_market | |
+| vehicles | |
+| farmlands | |
+| fields | |
+| environment_snapshots | |
+| server_snapshots | |
+| players | |
+| farms | |
+| poller_health | |
+
+In addition, the cached map image files (`data/map-image` and `data/map-image.mime`) are deleted so a new map image can be uploaded or re-fetched on the next poll.
+
+**Why `recurring_task_templates` is preserved:** These represent admin-configured automation (fuel-low alerts, season-change tasks, etc.) that apply to any playthrough. Wiping them would require manual reconfiguration every new save.
+
+**Why `app_settings` is preserved:** Poll intervals, the map image URL, ignored farm IDs, and other infrastructure config are independent of save data.
+
+### After Reset
+
+The poller continues running and will repopulate the database from the next FTP/HTTP poll cycle. There is no need to restart the backend. The UI will show empty states (no farms, no tasks, no vehicles) until the first successful poll completes — typically within one poll interval (default 60 s HTTP, 180 s FTP).
+
+If the map has changed, upload a new map image via Settings before the first poll so the map overlay is accurate from the start.
+
+---
+
+## 16. Notes for Claude Code
 
 - Always read this entire document before starting work on any phase
 - Check the current status in Section 13 to know where to begin

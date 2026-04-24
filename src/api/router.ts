@@ -13,6 +13,8 @@ import { createPollerRouter } from './routes/poller';
 import { createEventsRouter } from './routes/events';
 import { createSettingsRouter } from './routes/settings';
 import { createNotificationsRouter } from './routes/notifications';
+import { createLeaderboardRouter } from './routes/leaderboard';
+import { createAdminRouter } from './routes/admin';
 
 export function createApiRouter(db: Database): Router {
   const router = Router();
@@ -30,6 +32,8 @@ export function createApiRouter(db: Database): Router {
   router.use('/events', createEventsRouter());
   router.use('/settings', createSettingsRouter(db));
   router.use('/notifications', createNotificationsRouter(db));
+  router.use('/leaderboard', createLeaderboardRouter(db));
+  router.use('/admin', createAdminRouter(db));
 
   return router;
 }

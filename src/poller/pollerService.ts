@@ -185,6 +185,9 @@ export class PollerService {
     validateServerStats(stats, this.db);
     validateVehicles(vehicles, this.db);
 
+    // New-save detection: map name changed — read BEFORE writing the new snapshot
+    this.checkMapChange(stats.mapName ?? '');
+
     writeServerSnapshot(stats, this.db);
     // Check farmland ownership changes BEFORE writing the new state
     this.checkFarmlandChanges(stats.farmlands);
@@ -301,6 +304,25 @@ export class PollerService {
   }
 
   // 11.8 — Detect when a farmland changes ownership.
+  // New-save detection via map name change (the most reliable FS25 signal).
+  // currentDay in environment.xml is a continuous game-engine calendar and does NOT
+  // reset when a new save is started, so map name is used instead.
+  private checkMapChange(incomingMap: string): void {
+    if (!incomingMap) return;
+    const prev = this.db
+      .prepare(`SELECT map_name FROM server_snapshots WHERE map_name != '' ORDER BY id DESC LIMIT 1`)
+      .get() as { map_name: string } | undefined;
+    if (!prev?.map_name || prev.map_name === incomingMap) return;
+
+    console.warn(`[poller/http] Map changed: "${prev.map_name}" → "${incomingMap}" — possible new savegame`);
+    createAlert(this.db, 'new_save_detected', 'New savegame detected — reset recommended', {
+      body: `Map changed from "${prev.map_name}" to "${incomingMap}". ` +
+        'Go to Settings → Reset Playthrough to clear old farm data.',
+      dedup_key: `new_save_detected:${incomingMap}`,
+    });
+    broadcast('playthrough-reset-suggested', { prevMap: prev.map_name, newMap: incomingMap });
+  }
+
   private checkFarmlandChanges(incoming: FarmlandEntry[]): void {
     for (const fl of incoming) {
       if (fl.ownerFarmId === 0) continue;
@@ -347,6 +369,9 @@ export class PollerService {
             const prev = this.db
               .prepare(`SELECT season FROM environment_snapshots ORDER BY id DESC LIMIT 1`)
               .get() as { season: string } | undefined;
+            // NOTE: FS25's currentDay is a continuous game-engine calendar that does NOT
+            // reset when a new savegame is started. New-save detection is handled via
+            // map name change in pollHttp() instead.
             writeEnvironment(env, this.db);
             if (prev?.season && prev.season !== env.currentSeason) {
               const count = generateTasksFromTrigger(

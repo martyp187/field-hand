@@ -11,6 +11,7 @@ import { useTasks, useClaimTask, useUnclaimTask, useUpdateTaskStatus, useCreateT
 import { useFarms } from '@/api/hooks/useFarms';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { cn } from '@/lib/utils';
+import { PageError } from '@/components/ui/page-states';
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 
@@ -371,7 +372,8 @@ export function TaskBoard() {
     farmId: farmFilter !== '_all' ? parseInt(farmFilter) : undefined,
     category: categoryFilter !== '_all' ? categoryFilter : undefined,
   };
-  const { data: tasks = [], isLoading } = useTasks(serverFilters);
+  const { data: tasks = [], isLoading, isError, refetch } = useTasks(serverFilters);
+  if (isError) return <PageError message="Could not load tasks." onRetry={() => void refetch()} />;
 
   const farmLookup = useMemo(() => {
     const map = new Map<number, { name: string; colour: string | null }>();

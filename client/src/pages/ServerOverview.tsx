@@ -4,17 +4,27 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { WeatherIcon } from '@/components/WeatherIcon';
 import { FarmColourDot } from '@/components/FarmColourDot';
+import { PageError } from '@/components/ui/page-states';
 import { useServerStatus, useServerWeather } from '@/api/hooks/useServer';
 import { useFarms } from '@/api/hooks/useFarms';
 import { formatMoney, formatGameTime, formatRelativeTime } from '@/lib/formatters';
 
 export function ServerOverview() {
-  const { data: status, isLoading: statusLoading } = useServerStatus();
+  const { data: status, isLoading: statusLoading, isError: statusError, refetch } = useServerStatus();
   const { data: weather, isLoading: weatherLoading } = useServerWeather();
   const { data: farms = [], isLoading: farmsLoading } = useFarms();
   const navigate = useNavigate();
 
   const snap = status?.snapshot;
+
+  if (statusError) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-semibold mb-4">Server Overview</h1>
+        <PageError message="Could not load server status." onRetry={() => void refetch()} />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">

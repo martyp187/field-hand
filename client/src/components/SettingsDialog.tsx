@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -52,6 +52,29 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  const [resetConfirm, setResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+
+  const handleReset = useCallback(async () => {
+    setResetting(true);
+    setResetError(null);
+    try {
+      const res = await fetch('/api/admin/reset', { method: 'POST' });
+      if (!res.ok) {
+        const json = await res.json() as { error?: string };
+        throw new Error(json.error ?? `HTTP ${res.status}`);
+      }
+      qc.clear();
+      setResetConfirm(false);
+      onClose();
+    } catch (err) {
+      setResetError((err as Error).message);
+    } finally {
+      setResetting(false);
+    }
+  }, [onClose, qc]);
+
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -104,7 +127,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
@@ -185,6 +208,60 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
                 className="text-xs"
               />
             </div>
+          </div>
+
+          <Separator />
+
+          {/* New Playthrough Reset */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">New playthrough</Label>
+            <p className="text-xs text-muted-foreground">
+              Starting a new savegame? Clear all farm data, tasks, goals, vehicles, and history.
+              App settings and recurring task templates are preserved.
+            </p>
+
+            {!resetConfirm ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs text-destructive border-destructive/40 hover:bg-destructive/10 w-full"
+                onClick={() => { setResetConfirm(true); setResetError(null); }}
+              >
+                🔄 Reset for New Playthrough…
+              </Button>
+            ) : (
+              <div className="space-y-2 rounded-md border border-destructive/50 bg-destructive/5 p-3">
+                <p className="text-xs font-semibold text-destructive">
+                  This will permanently delete all game data. This cannot be undone.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Preserved: app settings, recurring task templates.
+                </p>
+                {resetError && (
+                  <p className="text-xs text-destructive">{resetError}</p>
+                )}
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="text-xs flex-1"
+                    disabled={resetting}
+                    onClick={() => void handleReset()}
+                  >
+                    {resetting ? 'Resetting…' : 'Yes, wipe all game data'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                    disabled={resetting}
+                    onClick={() => setResetConfirm(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
 
           <Separator />

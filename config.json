@@ -1,6 +1,6 @@
 {
   "ftp": {
-    "savegamePath": "/profile/savegame2",
+    "savegamePath": "/profile/savegame3",
     "files": {
       "farms":            "farms.xml",
       "fields":           "fields.xml",

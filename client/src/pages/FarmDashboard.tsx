@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
+import { PageError } from '@/components/ui/page-states';
 import { FarmColourDot } from '@/components/FarmColourDot';
 import { FillLevelBadge } from '@/components/FillLevelBadge';
 import {
@@ -420,12 +421,20 @@ function FieldsTab({ farmId }: { farmId: number }) {
 export function FarmDashboard() {
   const { id } = useParams<{ id: string }>();
   const farmId = id ? parseInt(id, 10) : null;
-  const { data: farm, isLoading } = useFarm(farmId);
+  const { data: farm, isLoading, isError, refetch } = useFarm(farmId);
 
   if (farmId === null) {
     return (
       <div className="p-6">
         <p className="text-muted-foreground">No farm selected.</p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-6">
+        <PageError message="Could not load farm data." onRetry={() => void refetch()} />
       </div>
     );
   }

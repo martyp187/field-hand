@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useGoals, useCreateGoal, useUpdateGoalProgress, useUpdateGoalStatus, type Goal } from '@/api/hooks/useGoals';
+import { PageError } from '@/components/ui/page-states';
 
 // ─── Create goal dialog ───────────────────────────────────────────────────────
 
@@ -215,8 +216,15 @@ function GoalCard({ goal }: { goal: Goal }) {
 // ─── Goals page ───────────────────────────────────────────────────────────────
 
 export function Goals() {
-  const { data: goals = [], isLoading } = useGoals();
+  const { data: goals = [], isLoading, isError, refetch } = useGoals();
   const [createOpen, setCreateOpen] = useState(false);
+
+  if (isError) return (
+    <div className="p-6">
+      <h1 className="text-2xl font-semibold mb-4">Goals</h1>
+      <PageError message="Could not load goals." onRetry={() => void refetch()} />
+    </div>
+  );
 
   const active = goals.filter((g) => g.status === 'ACTIVE');
   const completed = goals.filter((g) => g.status === 'COMPLETED');

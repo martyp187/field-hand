@@ -15,14 +15,23 @@ interface SidebarProps {
   onSettingsClick: () => void;
   onNotificationsClick: () => void;
   notificationCount: number;
+  mobileOpen: boolean;
+  onMobileClose: () => void;
 }
 
-export function Sidebar({ sseStatus, onSettingsClick, onNotificationsClick, notificationCount }: SidebarProps) {
+export function Sidebar({ sseStatus, onSettingsClick, onNotificationsClick, notificationCount, mobileOpen, onMobileClose }: SidebarProps) {
   const { nickname } = usePlayer();
   const { activeFarm, activeFarmId } = useFarm();
 
   return (
-    <aside className="flex h-screen w-56 flex-col border-r border-border bg-card">
+    <aside className={[
+      'flex h-screen w-56 shrink-0 flex-col border-r border-border bg-card',
+      'fixed top-0 left-0 z-50 transition-transform duration-200 ease-in-out',
+      'md:relative md:translate-x-0 md:z-auto',
+      mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
+    ].join(' ')}
+    onClick={(e) => { if (e.target === e.currentTarget) onMobileClose(); }}
+    >
       {/* Logo */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
         <span className="text-xl">🌾</span>
@@ -43,7 +52,7 @@ export function Sidebar({ sseStatus, onSettingsClick, onNotificationsClick, noti
       </div>
 
       {/* Nav */}
-      <ScrollArea className="flex-1 py-2">
+      <ScrollArea className="flex-1 py-2" onClick={onMobileClose}>
         <div className="space-y-4 px-2">
           <SidebarSection title="Server">
             <NavItem to="/" label="Overview" icon="🖥️" />

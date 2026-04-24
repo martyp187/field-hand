@@ -309,6 +309,23 @@ export function initSchema(db: Database): void {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+
+  // Performance indexes — safe to run repeatedly
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
+    CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date) WHERE due_date IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_task_claims_task_id ON task_claims(task_id);
+    CREATE INDEX IF NOT EXISTS idx_task_claims_nickname ON task_claims(player_nickname);
+    CREATE INDEX IF NOT EXISTS idx_vehicles_farm_id ON vehicles(farm_id);
+    CREATE INDEX IF NOT EXISTS idx_vehicles_property_state ON vehicles(property_state);
+    CREATE INDEX IF NOT EXISTS idx_farmlands_owner ON farmlands(owner_farm_id);
+    CREATE INDEX IF NOT EXISTS idx_farm_finance_farm_day ON farm_finance_snapshots(farm_id, in_game_day);
+    CREATE INDEX IF NOT EXISTS idx_economy_prices_fill_type ON economy_prices(fill_type);
+    CREATE INDEX IF NOT EXISTS idx_server_snapshots_time ON server_snapshots(snapshot_time DESC);
+    CREATE INDEX IF NOT EXISTS idx_environment_snapshots_time ON environment_snapshots(snapshot_time DESC);
+    CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_farmland_price_history_id ON farmland_price_history(farmland_id, snapshot_time DESC);
+  `);
 }
 
 export function seedSettings(db: Database): void {

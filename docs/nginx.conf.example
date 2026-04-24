@@ -1,0 +1,41 @@
+server {
+    listen 80;
+    server_name your-server-hostname-or-ip;
+
+    # Redirect HTTP to HTTPS once cert is provisioned
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name your-server-hostname-or-ip;
+
+    ssl_certificate     /etc/letsencrypt/live/your-domain/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/your-domain/privkey.pem;
+    include             /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;
+
+    # Proxy everything to the Node.js app
+    location / {
+        proxy_pass         http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+
+        # Required for SSE (Server-Sent Events)
+        proxy_set_header Connection '';
+        proxy_buffering  off;
+        proxy_cache      off;
+        chunked_transfer_encoding on;
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Increase timeouts for long-polling / SSE connections
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+
+    # Large upload limit for map image uploads (matches backend 20 MB)
+    client_max_body_size 25M;
+}

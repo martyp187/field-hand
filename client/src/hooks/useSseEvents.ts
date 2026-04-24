@@ -69,6 +69,17 @@ export function useSseEvents(): SseStatus {
           // ignore malformed SSE
         }
       });
+
+      es.addEventListener('playthrough-reset', () => {
+        // Flush every cache so the UI shows the fresh empty state immediately
+        void qc.invalidateQueries();
+        toast.info('Playthrough reset — all data cleared.');
+      });
+
+      es.addEventListener('playthrough-reset-suggested', () => {
+        void qc.invalidateQueries({ queryKey: ['notifications'] });
+        toast.warning('New savegame detected — consider resetting in Settings.');
+      });
     };
 
     connect();
